@@ -1,7 +1,10 @@
 package main
 
-import "fmt"
+func main() {
+	client, err := newClient("timee-jp-prod")
+	if err != nil {
+		panic(err)
+	}
 
-func main()  {
-	fmt.Println("hello world")
+	client.describeRepositories()
 }
