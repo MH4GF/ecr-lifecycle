@@ -1,9 +1,12 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/Taimee/ecr-lifecycle/ecr"
+)
 
 func run() error {
-	client, err := newClient("timee-jp-prod")
+	client, err := ecr.NewClient("timee-jp-prod")
 	if err != nil {
 		return err
 	}
