@@ -11,7 +11,7 @@ func run() error {
 		return err
 	}
 
-	if err = client.describeRepositories(); err != nil {
+	if err = client.DescribeImages("horie-rails-stg"); err != nil {
 		return err
 	}
 
