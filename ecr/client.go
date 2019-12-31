@@ -1,4 +1,4 @@
-package main
+package ecr
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ type client struct {
 	ecr *ecr.ECR
 }
 
-func newClient(awsProfile string) (*client, error) {
+func NewClient(awsProfile string) (*client, error) {
 	c := &client{}
 
 	sess, err := session.NewSessionWithOptions(session.Options{

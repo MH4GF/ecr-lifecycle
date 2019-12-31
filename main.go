@@ -1,14 +1,17 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/Taimee/ecr-lifecycle/ecr"
+)
 
 func run() error {
-	client, err := newClient("timee-jp-prod")
+	client, err := ecr.NewClient("timee-jp-prod")
 	if err != nil {
 		return err
 	}
 
-	if err = client.describeRepositories(); err != nil {
+	if err = client.DescribeImages("horie-rails-stg"); err != nil {
 		return err
 	}
 
