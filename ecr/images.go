@@ -7,7 +7,7 @@ import (
 )
 
 func (c *client) BatchDeleteImages(repositoryName string) error {
-	imageIds, err := c.setImageIds(repositoryName)
+	imageIds, err := c.deleteTargetImageIds(repositoryName, 50)
 	if err != nil {
 		return err
 	}
@@ -39,7 +39,7 @@ func (c *client) describeImages(repositoryName string) ([]*ecr.ImageDetail, erro
 	return result.ImageDetails, nil
 }
 
-func (c *client) setImageIds(repositoryName string) ([]*ecr.ImageIdentifier, error) {
+func (c *client) deleteTargetImageIds(repositoryName string, imageCountMoreThan int) ([]*ecr.ImageIdentifier, error) {
 	images, err := c.describeImages(*aws.String(repositoryName))
 	if err != nil {
 		return nil, err
@@ -47,7 +47,11 @@ func (c *client) setImageIds(repositoryName string) ([]*ecr.ImageIdentifier, err
 
 	var imageIds []*ecr.ImageIdentifier
 
-	for _, image := range images {
+	for i, image := range images {
+		if i <= imageCountMoreThan {
+			continue
+		}
+
 		imageIds = append(imageIds, &ecr.ImageIdentifier{
 			ImageDigest: image.ImageDigest,
 		})
