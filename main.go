@@ -6,12 +6,12 @@ import (
 )
 
 func run() error {
-	client, err := ecr.NewClient("timee-jp-prod")
+	client, err := ecr.NewClient("sandbox")
 	if err != nil {
 		return err
 	}
 
-	if err = client.DescribeImages("horie-rails-stg"); err != nil {
+	if err = client.BatchDeleteImages("miyagi"); err != nil {
 		return err
 	}
 
