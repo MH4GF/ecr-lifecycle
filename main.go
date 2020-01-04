@@ -2,16 +2,23 @@ package main
 
 import (
 	"fmt"
-	"github.com/Taimee/ecr-lifecycle/ecs"
+	"github.com/Taimee/ecr-lifecycle/ecr"
 )
 
 func run() error {
-	client, err := ecs.NewClient("timee-jp-prod", "ap-northeast-1")
+	client, err := ecr.NewClient("sandbox", "ap-northeast-1")
 	if err != nil {
 		return err
 	}
-	if _, err := client.ListAllRunningTasks(); err != nil {
+
+	repositories, err := client.DescribeRepositories()
+	if err != nil {
 		return err
+	}
+
+	count := 0
+	for _, repo := range repositories {
+		client.BatchDeleteImages(repo, &count)
 	}
 
 	return nil
