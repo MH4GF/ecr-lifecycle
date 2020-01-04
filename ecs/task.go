@@ -5,10 +5,10 @@ import (
 	"github.com/aws/aws-sdk-go/service/ecs"
 )
 
-// Task...現在実行中のタスクの情報を持つ。imageArnがあれば良い
+// Task...現在実行中のタスクの情報を持つ。imageがあれば良い
 type Task struct {
-	taskArn  *string
-	imageArn *string
+	TaskArn *string
+	Image   *string
 }
 
 func (c *client) ListAllRunningTasks() ([]*Task, error) {
@@ -44,8 +44,8 @@ func (c *client) ListAllRunningTasks() ([]*Task, error) {
 			// 最終的にcontainerDefinitionからimageArnを取得する
 			for _, c := range taskDefinition.TaskDefinition.ContainerDefinitions {
 				tasks = append(tasks, &Task{
-					taskArn: taskOutput.TaskArn,
-					imageArn: c.Image,
+					TaskArn: taskOutput.TaskArn,
+					Image:   c.Image,
 				})
 			}
 
