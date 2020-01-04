@@ -1,16 +1,17 @@
 package ecr
 
 import (
-	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecr"
 )
 
 type client struct {
 	ecr *ecr.ECR
+	region *string
 }
 
-func NewClient(awsProfile string) (*client, error) {
+func NewClient(awsProfile string, awsRegion string) (*client, error) {
 	c := &client{}
 
 	sess, err := session.NewSessionWithOptions(session.Options{
@@ -21,18 +22,8 @@ func NewClient(awsProfile string) (*client, error) {
 	if err != nil {
 		return nil, err
 	}
-	c.ecr = ecr.New(sess)
+	c.ecr = ecr.New(sess, aws.NewConfig().WithRegion(awsRegion))
+	c.region = &awsRegion
 
 	return c, err
-}
-
-func (c *client) describeRepositories() error {
-	input := &ecr.DescribeRepositoriesInput{}
-	result, err := c.ecr.DescribeRepositories(input)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(result)
-	return nil
 }
