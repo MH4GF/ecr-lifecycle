@@ -2,16 +2,15 @@ package main
 
 import (
 	"fmt"
-	"github.com/Taimee/ecr-lifecycle/ecr"
+	"github.com/Taimee/ecr-lifecycle/ecs"
 )
 
 func run() error {
-	client, err := ecr.NewClient("sandbox")
+	client, err := ecs.NewClient("timee-jp-prod", "ap-northeast-1")
 	if err != nil {
 		return err
 	}
-
-	if err = client.BatchDeleteImages("miyagi"); err != nil {
+	if _, err := client.ListAllRunningTasks(); err != nil {
 		return err
 	}
 
