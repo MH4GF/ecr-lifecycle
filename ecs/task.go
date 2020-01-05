@@ -5,13 +5,14 @@ import (
 	"github.com/aws/aws-sdk-go/service/ecs"
 )
 
-// Task...現在実行中のタスクの情報を持つ。imageがあれば良い
+// Task ... 現在実行中のタスクの情報を持つ。imageがあれば良い
 type Task struct {
 	TaskArn *string
 	Image   *string
 }
 
-func (c *client) ListAllRunningTasks() ([]*Task, error) {
+// ListAllRunningTasks ... 現在実行中のタスク一覧を取得する
+func (c *Client) ListAllRunningTasks() ([]*Task, error) {
 	var tasks []*Task
 
 
@@ -55,7 +56,7 @@ func (c *client) ListAllRunningTasks() ([]*Task, error) {
 	return tasks, nil
 }
 
-func (c *client) describeTaskDefinition(taskDefinition *string) (*ecs.DescribeTaskDefinitionOutput, error) {
+func (c *Client) describeTaskDefinition(taskDefinition *string) (*ecs.DescribeTaskDefinitionOutput, error) {
 	input := &ecs.DescribeTaskDefinitionInput{
 		TaskDefinition: taskDefinition,
 	}
@@ -69,7 +70,7 @@ func (c *client) describeTaskDefinition(taskDefinition *string) (*ecs.DescribeTa
 }
 
 // taskの詳細情報を取得
-func (c *client) describeTasks(clusterArn *string, taskArns []*string) (*ecs.DescribeTasksOutput, error) {
+func (c *Client) describeTasks(clusterArn *string, taskArns []*string) (*ecs.DescribeTasksOutput, error) {
 	input := &ecs.DescribeTasksInput{
 		Cluster: clusterArn,
 		Tasks: taskArns,
@@ -90,10 +91,10 @@ type listTasksOutput struct {
 }
 
 // statusがRUNNINGのecs task一覧を取得
-func (c *client) listAllRunningTasks() ([]*listTasksOutput, error) {
+func (c *Client) listAllRunningTasks() ([]*listTasksOutput, error) {
 	var tasks []*listTasksOutput
 
-	clusters, err := c.ListClusters()
+	clusters, err := c.listClusters()
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +115,7 @@ func (c *client) listAllRunningTasks() ([]*listTasksOutput, error) {
 	return tasks, nil
 }
 
-func (c *client) ListClusters() (*ecs.ListClustersOutput, error) {
+func (c *Client) listClusters() (*ecs.ListClustersOutput, error) {
 	result, err := c.ecs.ListClusters(&ecs.ListClustersInput{})
 	if err != nil {
 		return nil, err

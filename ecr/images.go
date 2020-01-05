@@ -6,19 +6,21 @@ import (
 	"github.com/aws/aws-sdk-go/service/ecr"
 )
 
+// Image is stored original ecr.Image
 type Image struct {
 	original *ecr.Image
 }
 
 // Image型にはURIがないので定義
 // 012345678910.dkr.ecr.<region-name>.amazonaws.com/<repository-name>:latest
-func (i *Image) uri(r *repository) *string {
+func (i *Image) uri(r *Repository) *string {
 	uri := *r.original.RepositoryUri + ":" + *i.original.ImageId.ImageTag
 	return &uri
 }
 
-func (c *client) BatchDeleteImages(r *repository, imageCountMoreThan *int) error {
-	input, err := c.NewRegisterBatchDeleteImageInput(r, imageCountMoreThan)
+// BatchDeleteImages ... 指定したrepositoryのimageを削除する。
+func (c *Client) BatchDeleteImages(r *Repository, imageCountMoreThan *int) error {
+	input, err := c.newRegisterBatchDeleteImageInput(r, imageCountMoreThan)
 	if err != nil {
 		return err
 	}
@@ -37,8 +39,8 @@ func (c *client) BatchDeleteImages(r *repository, imageCountMoreThan *int) error
 	return nil
 }
 
-func (c *client) NewRegisterBatchDeleteImageInput(r *repository, imageCountMoreThan *int) (*ecr.BatchDeleteImageInput, error) {
-	images, err := c.BatchGetImages(r)
+func (c *Client) newRegisterBatchDeleteImageInput(r *Repository, imageCountMoreThan *int) (*ecr.BatchDeleteImageInput, error) {
+	images, err := c.batchGetImages(r)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +77,7 @@ func (c *client) NewRegisterBatchDeleteImageInput(r *repository, imageCountMoreT
 	return input, nil
 }
 
-func (i *Image) isUsedRunningTasks(tasks []*ecs.Task, r *repository) bool {
+func (i *Image) isUsedRunningTasks(tasks []*ecs.Task, r *Repository) bool {
 	uri := i.uri(r)
 
 	for _, task := range tasks {
@@ -87,7 +89,7 @@ func (i *Image) isUsedRunningTasks(tasks []*ecs.Task, r *repository) bool {
 	return false
 }
 
-func (c *client) BatchGetImages(r *repository) ([]*Image, error) {
+func (c *Client) batchGetImages(r *Repository) ([]*Image, error) {
 	input, err := c.newRegisterBatchGetImageInput(r)
 	if err != nil {
 		return nil, err
@@ -106,7 +108,7 @@ func (c *client) BatchGetImages(r *repository) ([]*Image, error) {
 	return images, nil
 }
 
-func (c *client) newRegisterBatchGetImageInput(r *repository) (*ecr.BatchGetImageInput, error) {
+func (c *Client) newRegisterBatchGetImageInput(r *Repository) (*ecr.BatchGetImageInput, error) {
 	input := &ecr.DescribeImagesInput{
 		RepositoryName: r.original.RepositoryName,
 	}
