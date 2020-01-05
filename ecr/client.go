@@ -9,7 +9,6 @@ import (
 // Client ... ECR client with a session
 type Client struct {
 	ecr *ecr.ECR
-	region *string
 }
 
 // NewClient ... Create a ECR client with profile and region
@@ -25,7 +24,6 @@ func NewClient(awsProfile string, awsRegion string) (*Client, error) {
 		return nil, err
 	}
 	c.ecr = ecr.New(sess, aws.NewConfig().WithRegion(awsRegion))
-	c.region = &awsRegion
 
 	return c, err
 }
