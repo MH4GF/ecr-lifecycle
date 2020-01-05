@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ecs"
 )
 
+// ECS ... モックに差し替えやすくするため, aws-sdkのメソッドをinterfaceにしている
 type ECS interface {
 	DescribeTaskDefinition(input *ecs.DescribeTaskDefinitionInput) (*ecs.DescribeTaskDefinitionOutput, error)
 	DescribeTasks(input *ecs.DescribeTasksInput) (*ecs.DescribeTasksOutput, error)
@@ -33,6 +34,7 @@ func RegisterECSNewSession(awsProfile string, awsRegion string) (*ecs.ECS, error
 	return ecsClient, nil
 }
 
+// NewClient is constructor
 func NewClient(ecs ECS) *Client {
 	return &Client{ecs}
 }
