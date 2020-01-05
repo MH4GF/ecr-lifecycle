@@ -5,12 +5,13 @@ import (
 	"github.com/aws/aws-sdk-go/service/ecs"
 )
 
-// Task...現在実行中のタスクの情報を持つ。imageがあれば良い
+// Task ... 現在実行中のタスクの情報を持つ。imageがあれば良い
 type Task struct {
 	TaskArn *string
 	Image   *string
 }
 
+// ListAllRunningTasks ... 現在実行中のタスク一覧を取得する
 func (c *Client) ListAllRunningTasks() ([]*Task, error) {
 	var tasks []*Task
 

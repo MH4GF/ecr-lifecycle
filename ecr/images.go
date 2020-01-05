@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ecr"
 )
 
+// Image is stored original ecr.Image
 type Image struct {
 	original *ecr.Image
 }
@@ -17,7 +18,7 @@ func (i *Image) uri(r *Repository) *string {
 	return &uri
 }
 
-
+// BatchDeleteImages ... 指定したrepositoryのimageを削除する。
 func (c *Client) BatchDeleteImages(r *Repository, imageCountMoreThan *int) error {
 	input, err := c.newRegisterBatchDeleteImageInput(r, imageCountMoreThan)
 	if err != nil {

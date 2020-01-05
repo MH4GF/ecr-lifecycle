@@ -6,11 +6,13 @@ import (
 	"github.com/aws/aws-sdk-go/service/ecr"
 )
 
+// Client ... ECR client with a session
 type Client struct {
 	ecr *ecr.ECR
 	region *string
 }
 
+// NewClient ... Create a ECR client with profile and region
 func NewClient(awsProfile string, awsRegion string) (*Client, error) {
 	c := &Client{}
 

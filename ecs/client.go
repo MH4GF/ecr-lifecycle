@@ -6,10 +6,12 @@ import (
 	"github.com/aws/aws-sdk-go/service/ecs"
 )
 
+// Client ... ECS client with a session
 type Client struct {
 	ecs *ecs.ECS
 }
 
+// NewClient ... Create a ECS client with profile and region
 func NewClient(awsProfile string, awsRegion string) (*Client, error) {
 	c := &Client{}
 
