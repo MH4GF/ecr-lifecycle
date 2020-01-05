@@ -17,7 +17,7 @@ func (c *Client) ListAllRunningTasks() ([]*Task, error) {
 
 
 	// 現在実行中のタスク一覧を取得
-	outputs, err := c.listAllRunningTasks()
+	outputs, err := c.listAllTasksOutput()
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ type listTasksOutput struct {
 }
 
 // statusがRUNNINGのecs task一覧を取得
-func (c *Client) listAllRunningTasks() ([]*listTasksOutput, error) {
+func (c *Client) listAllTasksOutput() ([]*listTasksOutput, error) {
 	var tasks []*listTasksOutput
 
 	clusters, err := c.listClusters()
