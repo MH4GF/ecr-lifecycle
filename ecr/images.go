@@ -45,10 +45,11 @@ func (c *Client) newRegisterBatchDeleteImageInput(r *Repository, imageCountMoreT
 		return nil, err
 	}
 
-	ecsClient, err := ecs.NewClient("sandbox", "ap-northeast-1")
+	sess, err := ecs.RegisterECSNewSession("sandbox", "ap-northeast-1")
 	if err != nil {
 		return nil, err
 	}
+	ecsClient := ecs.NewClient(sess)
 	runningTasks, err := ecsClient.ListAllRunningTasks()
 	if err != nil {
 		return nil, err

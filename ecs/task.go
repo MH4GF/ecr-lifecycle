@@ -15,9 +15,8 @@ type Task struct {
 func (c *Client) ListAllRunningTasks() ([]*Task, error) {
 	var tasks []*Task
 
-
 	// 現在実行中のタスク一覧を取得
-	outputs, err := c.listAllRunningTasks()
+	outputs, err := c.listAllTasksOutput()
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +72,7 @@ func (c *Client) describeTaskDefinition(taskDefinition *string) (*ecs.DescribeTa
 func (c *Client) describeTasks(clusterArn *string, taskArns []*string) (*ecs.DescribeTasksOutput, error) {
 	input := &ecs.DescribeTasksInput{
 		Cluster: clusterArn,
-		Tasks: taskArns,
+		Tasks:   taskArns,
 	}
 
 	result, err := c.ecs.DescribeTasks(input)
@@ -87,21 +86,21 @@ func (c *Client) describeTasks(clusterArn *string, taskArns []*string) (*ecs.Des
 // clusterArnも持たせるためにtypeを拡張
 type listTasksOutput struct {
 	listTasksOutput *ecs.ListTasksOutput
-	clusterArn *string
+	clusterArn      *string
 }
 
 // statusがRUNNINGのecs task一覧を取得
-func (c *Client) listAllRunningTasks() ([]*listTasksOutput, error) {
+func (c *Client) listAllTasksOutput() ([]*listTasksOutput, error) {
 	var tasks []*listTasksOutput
 
-	clusters, err := c.listClusters()
+	clusters, err := c.ListClusters()
 	if err != nil {
 		return nil, err
 	}
 
 	for _, clusterArn := range clusters.ClusterArns {
 		input := &ecs.ListTasksInput{
-			Cluster: clusterArn,
+			Cluster:       clusterArn,
 			DesiredStatus: aws.String("RUNNING"),
 		}
 
@@ -113,13 +112,4 @@ func (c *Client) listAllRunningTasks() ([]*listTasksOutput, error) {
 	}
 
 	return tasks, nil
-}
-
-func (c *Client) listClusters() (*ecs.ListClustersOutput, error) {
-	result, err := c.ecs.ListClusters(&ecs.ListClustersInput{})
-	if err != nil {
-		return nil, err
-	}
-
-	return result, nil
 }
