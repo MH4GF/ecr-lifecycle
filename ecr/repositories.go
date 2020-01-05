@@ -4,11 +4,11 @@ import (
 	"github.com/aws/aws-sdk-go/service/ecr"
 )
 
-type repository struct {
+type Repository struct {
 	original *ecr.Repository
 }
 
-func (c *Client) DescribeRepositories() ([]*repository, error) {
+func (c *Client) DescribeRepositories() ([]*Repository, error) {
 	input := &ecr.DescribeRepositoriesInput{}
 
 	result, err := c.ecr.DescribeRepositories(input)
@@ -16,9 +16,9 @@ func (c *Client) DescribeRepositories() ([]*repository, error) {
 		return nil, err
 	}
 
-	var repositories []*repository
+	var repositories []*Repository
 	for _, repo := range result.Repositories {
-		repositories = append(repositories, &repository{original: repo})
+		repositories = append(repositories, &Repository{original: repo})
 	}
 
 	return repositories, nil
