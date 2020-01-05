@@ -6,15 +6,20 @@ import (
 	"github.com/aws/aws-sdk-go/service/ecs"
 )
 
-// Client ... ECS client with a session
-type Client struct {
-	ecs *ecs.ECS
+type ECS interface {
+	DescribeTaskDefinition(input *ecs.DescribeTaskDefinitionInput) (*ecs.DescribeTaskDefinitionOutput, error)
+	DescribeTasks(input *ecs.DescribeTasksInput) (*ecs.DescribeTasksOutput, error)
+	ListTasks(input *ecs.ListTasksInput) (*ecs.ListTasksOutput, error)
+	ListClusters(input *ecs.ListClustersInput) (*ecs.ListClustersOutput, error)
 }
 
-// NewClient ... Create a ECS client with profile and region
-func NewClient(awsProfile string, awsRegion string) (*Client, error) {
-	c := &Client{}
+// Client ... ECS client with a session
+type Client struct {
+	ecs ECS
+}
 
+// RegisterECSNewSession ... Create a ECS client with profile and region
+func RegisterECSNewSession(awsProfile string, awsRegion string) (*ecs.ECS, error) {
 	sess, err := session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 		Profile:           awsProfile,
@@ -23,7 +28,11 @@ func NewClient(awsProfile string, awsRegion string) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	c.ecs = ecs.New(sess, aws.NewConfig().WithRegion(awsRegion))
+	ecsClient := ecs.New(sess, aws.NewConfig().WithRegion(awsRegion))
 
-	return c, err
+	return ecsClient, nil
+}
+
+func NewClient(ecs ECS) *Client {
+	return &Client{ecs}
 }
