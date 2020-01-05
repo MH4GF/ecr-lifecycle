@@ -6,13 +6,13 @@ import (
 	"github.com/aws/aws-sdk-go/service/ecr"
 )
 
-type client struct {
+type Client struct {
 	ecr *ecr.ECR
 	region *string
 }
 
-func NewClient(awsProfile string, awsRegion string) (*client, error) {
-	c := &client{}
+func NewClient(awsProfile string, awsRegion string) (*Client, error) {
+	c := &Client{}
 
 	sess, err := session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,

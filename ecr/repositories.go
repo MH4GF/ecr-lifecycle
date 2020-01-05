@@ -8,7 +8,7 @@ type repository struct {
 	original *ecr.Repository
 }
 
-func (c *client) DescribeRepositories() ([]*repository, error) {
+func (c *Client) DescribeRepositories() ([]*repository, error) {
 	input := &ecr.DescribeRepositoriesInput{}
 
 	result, err := c.ecr.DescribeRepositories(input)

@@ -17,7 +17,8 @@ func (i *Image) uri(r *repository) *string {
 	return &uri
 }
 
-func (c *client) BatchDeleteImages(r *repository, imageCountMoreThan *int) error {
+
+func (c *Client) BatchDeleteImages(r *repository, imageCountMoreThan *int) error {
 	input, err := c.NewRegisterBatchDeleteImageInput(r, imageCountMoreThan)
 	if err != nil {
 		return err
@@ -37,7 +38,7 @@ func (c *client) BatchDeleteImages(r *repository, imageCountMoreThan *int) error
 	return nil
 }
 
-func (c *client) NewRegisterBatchDeleteImageInput(r *repository, imageCountMoreThan *int) (*ecr.BatchDeleteImageInput, error) {
+func (c *Client) NewRegisterBatchDeleteImageInput(r *repository, imageCountMoreThan *int) (*ecr.BatchDeleteImageInput, error) {
 	images, err := c.BatchGetImages(r)
 	if err != nil {
 		return nil, err
@@ -87,7 +88,7 @@ func (i *Image) isUsedRunningTasks(tasks []*ecs.Task, r *repository) bool {
 	return false
 }
 
-func (c *client) BatchGetImages(r *repository) ([]*Image, error) {
+func (c *Client) BatchGetImages(r *repository) ([]*Image, error) {
 	input, err := c.newRegisterBatchGetImageInput(r)
 	if err != nil {
 		return nil, err
@@ -106,7 +107,7 @@ func (c *client) BatchGetImages(r *repository) ([]*Image, error) {
 	return images, nil
 }
 
-func (c *client) newRegisterBatchGetImageInput(r *repository) (*ecr.BatchGetImageInput, error) {
+func (c *Client) newRegisterBatchGetImageInput(r *repository) (*ecr.BatchGetImageInput, error) {
 	input := &ecr.DescribeImagesInput{
 		RepositoryName: r.original.RepositoryName,
 	}
