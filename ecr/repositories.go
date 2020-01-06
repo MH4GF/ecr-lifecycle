@@ -4,24 +4,19 @@ import (
 	"github.com/aws/aws-sdk-go/service/ecr"
 )
 
-// Repository is stored original ecr.Repository
-type Repository struct {
-	original *ecr.Repository
-}
-
 // DescribeRepositories ... clientのprofileにひもづくECRリポジトリ一覧を取得する
-func (c *Client) DescribeRepositories() ([]*Repository, error) {
+func (c *Client) DescribeRepositories() ([]ecr.Repository, error) {
+	var rs []ecr.Repository
 	input := &ecr.DescribeRepositoriesInput{}
 
 	result, err := c.ecr.DescribeRepositories(input)
 	if err != nil {
-		return nil, err
+		return rs, err
 	}
 
-	var repositories []*Repository
 	for _, repo := range result.Repositories {
-		repositories = append(repositories, &Repository{original: repo})
+		rs = append(rs, *repo)
 	}
 
-	return repositories, nil
+	return rs, nil
 }
