@@ -7,13 +7,13 @@ import (
 
 // Task ... 現在実行中のタスクの情報を持つ。imageがあれば良い
 type Task struct {
-	TaskArn *string
-	Image   *string
+	TaskArn string
+	Image   string
 }
 
 // ListAllRunningTasks ... 現在実行中のタスク一覧を取得する
-func (c *Client) ListAllRunningTasks() ([]*Task, error) {
-	var tasks []*Task
+func (c *Client) ListAllRunningTasks() ([]Task, error) {
+	var tasks []Task
 
 	// 現在実行中のタスク一覧を取得
 	outputs, err := c.listAllTasksOutput()
@@ -43,9 +43,9 @@ func (c *Client) ListAllRunningTasks() ([]*Task, error) {
 
 			// 最終的にcontainerDefinitionからimageArnを取得する
 			for _, c := range taskDefinition.TaskDefinition.ContainerDefinitions {
-				tasks = append(tasks, &Task{
-					TaskArn: taskOutput.TaskArn,
-					Image:   c.Image,
+				tasks = append(tasks, Task{
+					TaskArn: aws.StringValue(taskOutput.TaskArn),
+					Image:   aws.StringValue(c.Image),
 				})
 			}
 

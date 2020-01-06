@@ -3,24 +3,23 @@ package ecr
 import (
 	"fmt"
 	"github.com/Taimee/ecr-lifecycle/ecs"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecr"
 )
 
-// Image is stored original ecr.Image
+// Image ... Store original ecr.Image
 type Image struct {
-	original *ecr.Image
+	Detail *ecr.Image
 }
 
-// Image型にはURIがないので定義
-// 012345678910.dkr.ecr.<region-name>.amazonaws.com/<repository-name>:latest
-func (i *Image) uri(r *Repository) *string {
-	uri := *r.original.RepositoryUri + ":" + *i.original.ImageId.ImageTag
-	return &uri
+// uri ... output 012345678910.dkr.ecr.<region-name>.amazonaws.com/<repository-name>:tag
+func (i *Image) uri(r ecr.Repository) string {
+	return fmt.Sprintf("%s:%s", aws.StringValue(r.RepositoryUri), aws.StringValue(i.Detail.ImageId.ImageTag))
 }
 
 // BatchDeleteImages ... 指定したrepositoryのimageを削除する。
-func (c *Client) BatchDeleteImages(r *Repository, imageCountMoreThan *int) error {
-	input, err := c.newRegisterBatchDeleteImageInput(r, imageCountMoreThan)
+func (c *Client) BatchDeleteImages(r ecr.Repository, imageCountMoreThan *int) error {
+	input, err := c.BatchDeleteImageInput(r, imageCountMoreThan)
 	if err != nil {
 		return err
 	}
@@ -39,8 +38,9 @@ func (c *Client) BatchDeleteImages(r *Repository, imageCountMoreThan *int) error
 	return nil
 }
 
-func (c *Client) newRegisterBatchDeleteImageInput(r *Repository, imageCountMoreThan *int) (*ecr.BatchDeleteImageInput, error) {
-	images, err := c.batchGetImages(r)
+//
+func (c *Client) BatchDeleteImageInput(r ecr.Repository, imageCountMoreThan *int) (*ecr.BatchDeleteImageInput, error) {
+	images, err := c.BatchGetImages(r)
 	if err != nil {
 		return nil, err
 	}
@@ -63,26 +63,27 @@ func (c *Client) newRegisterBatchDeleteImageInput(r *Repository, imageCountMoreT
 		}
 
 		// 現在実行中のタスクがある場合は削除しない
-		if image.isUsedRunningTasks(runningTasks, r) {
+		if image.IsImageUsedRunningTasks(runningTasks, r) {
 			continue
 		} else {
-			imageIds = append(imageIds, image.original.ImageId)
+			imageIds = append(imageIds, image.Detail.ImageId)
 		}
 	}
 
 	input := &ecr.BatchDeleteImageInput{
 		ImageIds:       imageIds,
-		RepositoryName: r.original.RepositoryName,
+		RepositoryName: r.RepositoryName,
 	}
 
 	return input, nil
 }
 
-func (i *Image) isUsedRunningTasks(tasks []*ecs.Task, r *Repository) bool {
+// IsImageUsedRunningTasks ... 今動いてるタスクでイメージが使われてないか
+func (i *Image) IsImageUsedRunningTasks(tasks []ecs.Task, r ecr.Repository) bool {
 	uri := i.uri(r)
 
 	for _, task := range tasks {
-		if *task.Image == *uri {
+		if task.Image == uri {
 			return true
 		}
 	}
@@ -90,8 +91,9 @@ func (i *Image) isUsedRunningTasks(tasks []*ecs.Task, r *Repository) bool {
 	return false
 }
 
-func (c *Client) batchGetImages(r *Repository) ([]*Image, error) {
-	input, err := c.newRegisterBatchGetImageInput(r)
+// BatchGetImages ... イメージの詳細を取得
+func (c *Client) BatchGetImages(r ecr.Repository) ([]*Image, error) {
+	input, err := c.BatchGetImageInput(r)
 	if err != nil {
 		return nil, err
 	}
@@ -103,15 +105,16 @@ func (c *Client) batchGetImages(r *Repository) ([]*Image, error) {
 
 	var images []*Image
 	for _, image := range result.Images {
-		images = append(images, &Image{original: image})
+		images = append(images, &Image{Detail: image})
 	}
 
 	return images, nil
 }
 
-func (c *Client) newRegisterBatchGetImageInput(r *Repository) (*ecr.BatchGetImageInput, error) {
+// BatchGetImageInput ... イメージの詳細を取得するためのstruct初期化
+func (c *Client) BatchGetImageInput(r ecr.Repository) (*ecr.BatchGetImageInput, error) {
 	input := &ecr.DescribeImagesInput{
-		RepositoryName: r.original.RepositoryName,
+		RepositoryName: r.RepositoryName,
 	}
 
 	result, err := c.ecr.DescribeImages(input)
@@ -124,7 +127,7 @@ func (c *Client) newRegisterBatchGetImageInput(r *Repository) (*ecr.BatchGetImag
 		imageIds = append(imageIds, &ecr.ImageIdentifier{ImageDigest: imageDetail.ImageDigest})
 	}
 
-	batchInput := &ecr.BatchGetImageInput{ImageIds: imageIds, RepositoryName: r.original.RepositoryName}
+	batchInput := &ecr.BatchGetImageInput{ImageIds: imageIds, RepositoryName: r.RepositoryName}
 
 	return batchInput, nil
 }
