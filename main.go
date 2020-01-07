@@ -16,11 +16,13 @@ func run() error {
 	if err != nil {
 		return err
 	}
+	fmt.Println(repositories)
 
-	count := 0
-	for _, repo := range repositories {
-		client.BatchDeleteImages(repo, &count)
-	}
+	// 削除されては困るのでコメントアウトしておく。dryrunオプションみたいなのをつけたい
+	//count := 10000
+	//for _, repo := range repositories {
+	//	client.BatchDeleteImages(repo, &count)
+	//}
 
 	return nil
 }
