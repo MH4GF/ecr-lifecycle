@@ -5,6 +5,9 @@ import (
 	"os"
 )
 
+// build時に注入する
+var Revision string
+
 func main() {
 	app := newApp()
 	if err := app.Run(os.Args); err != nil {
