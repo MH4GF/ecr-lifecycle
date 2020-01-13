@@ -35,7 +35,7 @@ var cmdDeleteImages = cli.Command{
 		},
 		&cli.StringFlag{
 			Name:    "keep",
-			Value: "10000",
+			Value:   "10000",
 			Aliases: []string{"k"},
 			Usage:   "Number of images to keep from latest.",
 		},
