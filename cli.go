@@ -6,6 +6,7 @@ import (
 	"github.com/Taimee/ecr-lifecycle/ecr"
 	"github.com/urfave/cli/v2"
 	"strconv"
+	"sync"
 )
 
 func newApp() *cli.App {
@@ -69,9 +70,17 @@ var cmdDeleteImages = cli.Command{
 		if err != nil {
 			return err
 		}
+
+		var wg sync.WaitGroup
 		for _, repo := range repositories {
-			client.BatchDeleteImages(repo, &num)
+			wg.Add(1)
+			go func(r ecr.Repository) {
+				defer wg.Done()
+				client.BatchDeleteImages(r, &num)
+			}(repo)
 		}
+		wg.Wait()
+
 		return nil
 	},
 }
