@@ -22,9 +22,13 @@ func TestImage_Uris(t *testing.T) {
 					ImageTags: []*string{
 						aws.String("latest"),
 					},
+					ImageDigest: aws.String("sha256:example"),
 				},
 			},
-			expected: []string{"012345678910.dkr.ecr.ap-northeast-1.amazonaws.com/hoge:latest"},
+			expected: []string{
+				"012345678910.dkr.ecr.ap-northeast-1.amazonaws.com/hoge@sha256:example",
+				"012345678910.dkr.ecr.ap-northeast-1.amazonaws.com/hoge:latest",
+			},
 		},
 		{
 			input: Image{
@@ -33,9 +37,11 @@ func TestImage_Uris(t *testing.T) {
 						aws.String("latest"),
 						aws.String("prod"),
 					},
+					ImageDigest: aws.String("sha256:example"),
 				},
 			},
 			expected: []string{
+				"012345678910.dkr.ecr.ap-northeast-1.amazonaws.com/hoge@sha256:example",
 				"012345678910.dkr.ecr.ap-northeast-1.amazonaws.com/hoge:latest",
 				"012345678910.dkr.ecr.ap-northeast-1.amazonaws.com/hoge:prod",
 			},
@@ -44,9 +50,12 @@ func TestImage_Uris(t *testing.T) {
 			input: Image{
 				Detail: &ecr.ImageDetail{
 					ImageTags: []*string{},
+					ImageDigest: aws.String("sha256:example"),
 				},
 			},
-			expected: []string{},
+			expected: []string{
+				"012345678910.dkr.ecr.ap-northeast-1.amazonaws.com/hoge@sha256:example",
+			},
 		},
 	}
 
