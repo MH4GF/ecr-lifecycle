@@ -12,10 +12,14 @@ type Image struct {
 	Detail *ecr.ImageDetail
 }
 
-// Uris ... output string is 012345678910.dkr.ecr.<region-name>.amazonaws.com/<repository-name>:tag
+// Uris ... uriの配列を返す。持っているタグごとのuriと、ImageDigestを用いたuriの両方を返す
 func (i *Image) Uris(r ecr.Repository) []string {
 	uris := make([]string, 0)
 
+	// 012345678910.dkr.ecr.<region-name>.amazonaws.com/<repository-name>@<image-digest>
+	uris = append(uris, fmt.Sprintf("%s@%s", aws.StringValue(r.RepositoryUri), aws.StringValue(i.Detail.ImageDigest)))
+
+	// 012345678910.dkr.ecr.<region-name>.amazonaws.com/<repository-name>:tag
 	for _, tag := range i.Detail.ImageTags {
 		uris = append(uris, fmt.Sprintf("%s:%s", aws.StringValue(r.RepositoryUri), aws.StringValue(tag)))
 	}
