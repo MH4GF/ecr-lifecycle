@@ -9,12 +9,18 @@ import (
 
 // Image ... Store original ecr.Image
 type Image struct {
-	Detail *ecr.Image
+	Detail *ecr.ImageDetail
 }
 
-// uri ... output 012345678910.dkr.ecr.<region-name>.amazonaws.com/<repository-name>:tag
-func (i *Image) uri(r ecr.Repository) string {
-	return fmt.Sprintf("%s:%s", aws.StringValue(r.RepositoryUri), aws.StringValue(i.Detail.ImageId.ImageTag))
+// Uris ... output string is 012345678910.dkr.ecr.<region-name>.amazonaws.com/<repository-name>:tag
+func (i *Image) Uris(r ecr.Repository) []string {
+	uris := make([]string, 0)
+
+	for _, tag := range i.Detail.ImageTags {
+		uris = append(uris, fmt.Sprintf("%s:%s", aws.StringValue(r.RepositoryUri), aws.StringValue(tag)))
+	}
+
+	return uris
 }
 
 // BatchDeleteImages ... 指定したrepositoryのimageを削除する。
@@ -66,7 +72,7 @@ func (c *Client) BatchDeleteImageInput(r ecr.Repository, imageCountMoreThan *int
 		if image.IsImageUsedRunningTasks(runningTasks, r) {
 			continue
 		} else {
-			imageIds = append(imageIds, image.Detail.ImageId)
+			imageIds = append(imageIds, &ecr.ImageIdentifier{ImageDigest: image.Detail.ImageDigest})
 		}
 	}
 
@@ -80,11 +86,13 @@ func (c *Client) BatchDeleteImageInput(r ecr.Repository, imageCountMoreThan *int
 
 // IsImageUsedRunningTasks ... 今動いてるタスクでイメージが使われてないか
 func (i *Image) IsImageUsedRunningTasks(tasks []ecs.Task, r ecr.Repository) bool {
-	uri := i.uri(r)
+	uris := i.Uris(r)
 
 	for _, task := range tasks {
-		if task.Image == uri {
-			return true
+		for _, uri := range uris {
+			if task.Image == uri {
+				return true
+			}
 		}
 	}
 
@@ -93,26 +101,6 @@ func (i *Image) IsImageUsedRunningTasks(tasks []ecs.Task, r ecr.Repository) bool
 
 // BatchGetImages ... イメージの詳細を取得
 func (c *Client) BatchGetImages(r ecr.Repository) ([]*Image, error) {
-	input, err := c.BatchGetImageInput(r)
-	if err != nil {
-		return nil, err
-	}
-
-	result, err := c.ecr.BatchGetImage(input)
-	if err != nil {
-		return nil, err
-	}
-
-	var images []*Image
-	for _, image := range result.Images {
-		images = append(images, &Image{Detail: image})
-	}
-
-	return images, nil
-}
-
-// BatchGetImageInput ... イメージの詳細を取得するためのstruct初期化
-func (c *Client) BatchGetImageInput(r ecr.Repository) (*ecr.BatchGetImageInput, error) {
 	input := &ecr.DescribeImagesInput{
 		RepositoryName: r.RepositoryName,
 	}
@@ -122,12 +110,10 @@ func (c *Client) BatchGetImageInput(r ecr.Repository) (*ecr.BatchGetImageInput, 
 		return nil, err
 	}
 
-	var imageIds []*ecr.ImageIdentifier
-	for _, imageDetail := range result.ImageDetails {
-		imageIds = append(imageIds, &ecr.ImageIdentifier{ImageDigest: imageDetail.ImageDigest})
+	var images []*Image
+	for _, image := range result.ImageDetails {
+		images = append(images, &Image{Detail: image})
 	}
 
-	batchInput := &ecr.BatchGetImageInput{ImageIds: imageIds, RepositoryName: r.RepositoryName}
-
-	return batchInput, nil
+	return images, nil
 }
