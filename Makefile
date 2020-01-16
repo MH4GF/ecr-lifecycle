@@ -1,15 +1,18 @@
+NAME     := ecr-lifecycle
+REVISION := $(shell git describe --always)
+LDFLAGS  := -ldflags="-X \"main.Revision=$(REVISION)\" -extldflags \"-static\""
+
 .PHONY: help build build-image clean run lint fmt test
 
-name := ecr-lifecycle
 
 help:
 	@awk -F ':|##' '/^[^\t].+?:.*?##/ { printf "\033[36m%-22s\033[0m %s\n", $$1, $$NF }' $(MAKEFILE_LIST)
 
 build:
-	@go build -o $(name)
+	@go build -o $(NAME) $(LDFLAGS)
 
 build-image:
-	@docker build . -t $(name)
+	@docker build . -t $(NAME)
 
 clean:
 	@rm -f $(name)
