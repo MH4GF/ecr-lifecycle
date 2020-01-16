@@ -84,8 +84,18 @@ var cmdDeleteImages = cli.Command{
 					<-semaphore
 					defer wg.Done()
 				}()
-				// TODO: error時にwarningを出力する
-				client.BatchDeleteImages(r, &num)
+				result, err := client.BatchDeleteImages(r, &num)
+				if err != nil {
+					log.sugar.Warnf("could not delete images: %s", err)
+				}
+				if result != nil {
+					for _, f := range result.Failures {
+						log.sugar.Warnw("warn", "FailureCode", f.FailureCode, "FailureReason", f.FailureReason, "ImageId", f.ImageId)
+					}
+					for _, id := range result.ImageIds {
+						log.sugar.Infow("deletedImageId", "ImageDigest", id.ImageDigest)
+					}
+				}
 			}(repo)
 		}
 		wg.Wait()
