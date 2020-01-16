@@ -28,8 +28,8 @@ func (i *Image) Uris(r ecr.Repository) []string {
 }
 
 // BatchDeleteImages ... 指定したrepositoryのimageを削除する。
-func (c *Client) BatchDeleteImages(r ecr.Repository, imageCountMoreThan *int) error {
-	input, err := c.BatchDeleteImageInput(r, imageCountMoreThan)
+func (c *Client) BatchDeleteImages(r Repository, imageCountMoreThan *int) error {
+	input, err := c.BatchDeleteImageInput(*r.Detail, imageCountMoreThan)
 	if err != nil {
 		return err
 	}
