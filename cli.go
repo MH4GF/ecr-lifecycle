@@ -72,10 +72,18 @@ var cmdDeleteImages = cli.Command{
 		}
 
 		var wg sync.WaitGroup
+		semaphore := make(chan struct{}, 10)
+
 		for _, repo := range repositories {
 			wg.Add(1)
+			semaphore <- struct{}{}
+
 			go func(r ecr.Repository) {
-				defer wg.Done()
+				defer func() {
+					<-semaphore
+					defer wg.Done()
+				}()
+				// TODO: error時にwarningを出力する
 				client.BatchDeleteImages(r, &num)
 			}(repo)
 		}
