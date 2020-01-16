@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"github.com/Taimee/ecr-lifecycle/ecr"
 	"github.com/urfave/cli/v2"
 	"strconv"
@@ -64,7 +63,9 @@ var cmdDeleteImages = cli.Command{
 		if err != nil {
 			return err
 		}
-		fmt.Println(repositories)
+		for _, r := range repositories {
+			log.sugar.Infof("target repositoryArn: %s", *r.Detail.RepositoryArn)
+		}
 
 		num, err := strconv.Atoi(keep)
 		if err != nil {
