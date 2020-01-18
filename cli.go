@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"github.com/Taimee/ecr-lifecycle/ecr"
 	"github.com/urfave/cli/v2"
 	"strconv"
@@ -64,7 +63,9 @@ var cmdDeleteImages = cli.Command{
 		if err != nil {
 			return err
 		}
-		fmt.Println(repositories)
+		for _, r := range repositories {
+			log.sugar.Infof("target repositoryArn: %s", *r.Detail.RepositoryArn)
+		}
 
 		num, err := strconv.Atoi(keep)
 		if err != nil {
@@ -83,8 +84,18 @@ var cmdDeleteImages = cli.Command{
 					<-semaphore
 					defer wg.Done()
 				}()
-				// TODO: error時にwarningを出力する
-				client.BatchDeleteImages(r, &num)
+				result, err := client.BatchDeleteImages(r, &num)
+				if err != nil {
+					log.sugar.Warnf("could not delete images: %s", err)
+				}
+				if result != nil {
+					for _, f := range result.Failures {
+						log.sugar.Warnw("warn", "FailureCode", f.FailureCode, "FailureReason", f.FailureReason, "ImageId", f.ImageId)
+					}
+					for _, id := range result.ImageIds {
+						log.sugar.Infow("deletedImageId", "ImageDigest", id.ImageDigest)
+					}
+				}
 			}(repo)
 		}
 		wg.Wait()
