@@ -36,5 +36,6 @@ func RegisterECSNewSession(awsProfile string, awsRegion string) (*ecs.ECS, error
 
 // NewClient is constructor
 func NewClient(ecs ECS) *Client {
+
 	return &Client{ecs}
 }

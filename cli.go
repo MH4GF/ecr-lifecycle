@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"github.com/Taimee/ecr-lifecycle/ecr"
 	"github.com/urfave/cli/v2"
 	"sync"
@@ -23,9 +22,12 @@ var cmdDeleteImages = cli.Command{
 	Name: "delete-images",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
-			Name:    "profile",
-			Aliases: []string{"p"},
-			Usage:   "Use a specific profile from your credential file.",
+			Name:  "ecr-profile",
+			Usage: "Use a specific profile of stored ecr repository from your credential file.",
+		},
+		&cli.StringSliceFlag{
+			Name:  "ecs-profiles",
+			Usage: "Use a multiple profiles of running ecs task from your credential file.",
 		},
 		&cli.StringFlag{
 			Name:    "region",
@@ -40,36 +42,17 @@ var cmdDeleteImages = cli.Command{
 		},
 	},
 	Action: func(c *cli.Context) error {
-		// Get flag options
-		profile := c.String("profile")
-		region := c.String("region")
-		keep := c.Int("keep")
-
-		// Flag check
-		if profile == "" {
-			return errors.New("-p, --profile option is required")
-		}
-		if region == "" {
-			return errors.New("-r or --region option is required")
-		}
-
-		client, err := ecr.NewClient(profile, region)
+		// 入力されたflagを元に各種init
+		config, err := newConfig(c)
 		if err != nil {
 			return err
-		}
-
-		repositories, err := client.DescribeRepositories()
-		if err != nil {
-			return err
-		}
-		for _, r := range repositories {
-			log.sugar.Infof("target repositoryArn: %s", *r.Detail.RepositoryArn)
 		}
 
 		var wg sync.WaitGroup
 		semaphore := make(chan struct{}, 10)
 
-		for _, repo := range repositories {
+		//repositoryごとに並行で回す
+		for _, repo := range config.repositories {
 			wg.Add(1)
 			semaphore <- struct{}{}
 
@@ -78,16 +61,18 @@ var cmdDeleteImages = cli.Command{
 					<-semaphore
 					defer wg.Done()
 				}()
-				result, err := client.BatchDeleteImages(r, keep)
-				if err != nil {
-					log.sugar.Warnf("could not delete images: %s", err)
-				}
-				if result != nil {
-					for _, f := range result.Failures {
-						log.sugar.Warnw("warn", "FailureCode", f.FailureCode, "FailureReason", f.FailureReason, "ImageId", f.ImageId)
+				for _, c := range config.ecsClients {
+					result, err := config.ecrClient.BatchDeleteImages(r, config.flag.keep, c)
+					if err != nil {
+						log.sugar.Warnf("could not delete images: %s", err)
 					}
-					for _, id := range result.ImageIds {
-						log.sugar.Infow("deletedImageId", "ImageDigest", id.ImageDigest)
+					if result != nil {
+						for _, f := range result.Failures {
+							log.sugar.Warnw("warn", "FailureCode", f.FailureCode, "FailureReason", f.FailureReason, "ImageId", f.ImageId)
+						}
+						for _, id := range result.ImageIds {
+							log.sugar.Infow("deletedImageId", "ImageDigest", id.ImageDigest)
+						}
 					}
 				}
 			}(repo)

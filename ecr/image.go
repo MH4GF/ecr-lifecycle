@@ -28,8 +28,8 @@ func (i *Image) Uris(r ecr.Repository) []string {
 }
 
 // BatchDeleteImages ... 指定したrepositoryのimageを削除する。
-func (c *Client) BatchDeleteImages(r Repository, imageCountMoreThan int) (*ecr.BatchDeleteImageOutput, error) {
-	input, err := c.BatchDeleteImageInput(*r.Detail, &imageCountMoreThan)
+func (c *Client) BatchDeleteImages(r Repository, imageCountMoreThan int, ecs ecs.Client) (*ecr.BatchDeleteImageOutput, error) {
+	input, err := c.BatchDeleteImageInput(*r.Detail, imageCountMoreThan, ecs)
 	if err != nil {
 		return nil, err
 	}
@@ -48,18 +48,13 @@ func (c *Client) BatchDeleteImages(r Repository, imageCountMoreThan int) (*ecr.B
 }
 
 //
-func (c *Client) BatchDeleteImageInput(r ecr.Repository, imageCountMoreThan *int) (*ecr.BatchDeleteImageInput, error) {
+func (c *Client) BatchDeleteImageInput(r ecr.Repository, imageCountMoreThan int, ecs ecs.Client) (*ecr.BatchDeleteImageInput, error) {
 	images, err := c.BatchGetImages(r)
 	if err != nil {
 		return nil, err
 	}
 
-	sess, err := ecs.RegisterECSNewSession("sandbox", "ap-northeast-1")
-	if err != nil {
-		return nil, err
-	}
-	ecsClient := ecs.NewClient(sess)
-	runningTasks, err := ecsClient.ListAllRunningTasks()
+	runningTasks, err := ecs.ListAllRunningTasks()
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +62,7 @@ func (c *Client) BatchDeleteImageInput(r ecr.Repository, imageCountMoreThan *int
 	var imageIds []*ecr.ImageIdentifier
 
 	for i, image := range images {
-		if i < *imageCountMoreThan {
+		if i < imageCountMoreThan {
 			continue
 		}
 
