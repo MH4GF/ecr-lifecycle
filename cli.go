@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/Taimee/ecr-lifecycle/ecr"
 	"github.com/urfave/cli/v2"
-	"strconv"
 	"sync"
 )
 
@@ -33,9 +32,9 @@ var cmdDeleteImages = cli.Command{
 			Aliases: []string{"r"},
 			Usage:   "The region to use.",
 		},
-		&cli.StringFlag{
+		&cli.IntFlag{
 			Name:    "keep",
-			Value:   "10000",
+			Value:   10000,
 			Aliases: []string{"k"},
 			Usage:   "Number of images to keep from latest.",
 		},
@@ -44,7 +43,7 @@ var cmdDeleteImages = cli.Command{
 		// Get flag options
 		profile := c.String("profile")
 		region := c.String("region")
-		keep := c.String("keep")
+		keep := c.Int("keep")
 
 		// Flag check
 		if profile == "" {
@@ -67,11 +66,6 @@ var cmdDeleteImages = cli.Command{
 			log.sugar.Infof("target repositoryArn: %s", *r.Detail.RepositoryArn)
 		}
 
-		num, err := strconv.Atoi(keep)
-		if err != nil {
-			return err
-		}
-
 		var wg sync.WaitGroup
 		semaphore := make(chan struct{}, 10)
 
@@ -84,7 +78,7 @@ var cmdDeleteImages = cli.Command{
 					<-semaphore
 					defer wg.Done()
 				}()
-				result, err := client.BatchDeleteImages(r, &num)
+				result, err := client.BatchDeleteImages(r, &keep)
 				if err != nil {
 					log.sugar.Warnf("could not delete images: %s", err)
 				}
