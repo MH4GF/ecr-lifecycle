@@ -6,7 +6,7 @@
 # Usage
 
 ```shell script
-$ ecr-lifecycle delete-images --keep 50 --profile sandbox --region ap-northeast-1
+$ ecr-lifecycle delete-images --keep 50 --ecr-profile sandbox --region ap-northeast-1 --ecs-profiles hoge,fuga
 ```
 
 # development
