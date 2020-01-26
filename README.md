@@ -13,5 +13,5 @@ $ ecr-lifecycle delete-images --keep 50 --ecr-profile sandbox --region ap-northe
 
 ```shell script
 $ make build
-$ ./ecr-lifecycle
+$ bin/ecr-lifecycle
 ```

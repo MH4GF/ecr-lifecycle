@@ -9,13 +9,13 @@ help:
 	@awk -F ':|##' '/^[^\t].+?:.*?##/ { printf "\033[36m%-22s\033[0m %s\n", $$1, $$NF }' $(MAKEFILE_LIST)
 
 build:
-	@go build -o $(NAME) $(LDFLAGS)
+	@go build -o bin/$(NAME) $(LDFLAGS)
 
 build-image:
 	@docker build . -t $(NAME)
+clean: ## remove binary
+	@rm -f bin/$(NAME)
 
-clean:
-	@rm -f $(name)
 
 run:
 	@go run main.go
