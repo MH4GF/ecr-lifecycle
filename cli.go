@@ -78,7 +78,7 @@ var cmdDeleteImages = cli.Command{
 					<-semaphore
 					defer wg.Done()
 				}()
-				result, err := client.BatchDeleteImages(r, &keep)
+				result, err := client.BatchDeleteImages(r, keep)
 				if err != nil {
 					log.sugar.Warnf("could not delete images: %s", err)
 				}
