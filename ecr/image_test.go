@@ -1,7 +1,7 @@
 package ecr
 
 import (
-	"github.com/Taimee/ecr-lifecycle/ecs"
+	"github.com/MH4GF/ecr-lifecycle/ecs"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecr"
 	"reflect"

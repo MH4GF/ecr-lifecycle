@@ -12,5 +12,5 @@ RUN make build
 FROM scratch
 
 WORKDIR /app
-COPY --from=builder /src/ecr-lifecycle /app/
+COPY --from=builder /src/bin/ecr-lifecycle /app/
 ENTRYPOINT ["./ecr-lifecycle"]

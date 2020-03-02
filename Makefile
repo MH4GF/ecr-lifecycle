@@ -21,8 +21,8 @@ build-cross: clean ## build for darwin and linux to bin/
 docker-build: clean ## go build on docker
 	@docker run --rm \
 		-e "GO111MODULE=on" \
-		-v `pwd`:/go/src/github.com/Taimee/$(NAME) \
-		-w /go/src/github.com/Taimee/$(NAME) \
+		-v `pwd`:/go/src/github.com/MH4GF/$(NAME) \
+		-w /go/src/github.com/MH4GF/$(NAME) \
 		$(GO_IMAGE) bash build.sh
 
 clean: ## remove binary

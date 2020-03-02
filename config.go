@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/Taimee/ecr-lifecycle/ecr"
-	"github.com/Taimee/ecr-lifecycle/ecs"
+	"github.com/MH4GF/ecr-lifecycle/ecr"
+	"github.com/MH4GF/ecr-lifecycle/ecs"
 	"github.com/urfave/cli/v2"
 )
 

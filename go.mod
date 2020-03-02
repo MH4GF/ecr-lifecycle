@@ -1,4 +1,4 @@
-module github.com/Taimee/ecr-lifecycle
+module github.com/MH4GF/ecr-lifecycle
 
 go 1.13
 
