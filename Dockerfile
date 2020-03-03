@@ -13,4 +13,6 @@ FROM scratch
 
 WORKDIR /app
 COPY --from=builder /src/bin/ecr-lifecycle /app/
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+
 ENTRYPOINT ["./ecr-lifecycle"]
