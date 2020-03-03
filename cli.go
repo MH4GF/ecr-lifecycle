@@ -71,7 +71,7 @@ var cmdDeleteImages = cli.Command{
 							log.sugar.Warnw("warn", "FailureCode", f.FailureCode, "FailureReason", f.FailureReason, "ImageId", f.ImageId)
 						}
 						for _, id := range result.ImageIds {
-							log.sugar.Infow("deletedImageId", "ImageDigest", id.ImageDigest)
+							log.sugar.Infow("deletedImageId", "RepositoryName", r.Detail.RepositoryName, "ImageDigest", id.ImageDigest)
 						}
 					}
 				}
