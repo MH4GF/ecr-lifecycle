@@ -39,7 +39,7 @@ func newConfig(c *cli.Context) (*Config, error) {
 		if err != nil {
 			return nil, err
 		}
-		ecsClient := ecs.NewClient(sess)
+		ecsClient := ecs.NewClient(*sess)
 		ecsClients = append(ecsClients, *ecsClient)
 	}
 
