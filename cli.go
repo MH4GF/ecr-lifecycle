@@ -61,18 +61,17 @@ var cmdDeleteImages = cli.Command{
 					<-semaphore
 					defer wg.Done()
 				}()
-				for _, c := range config.ecsClients {
-					result, err := config.ecrClient.BatchDeleteImages(r, config.flag.keep, c)
-					if err != nil {
-						log.sugar.Warnf("could not delete images: %s", err)
+
+				result, err := config.ecrClient.BatchDeleteImages(r, config.flag.keep, config.ecsClients)
+				if err != nil {
+					log.sugar.Warnf("could not delete images: %s", err)
+				}
+				if result != nil {
+					for _, f := range result.Failures {
+						log.sugar.Warnw("warn", "FailureCode", f.FailureCode, "FailureReason", f.FailureReason, "ImageId", f.ImageId)
 					}
-					if result != nil {
-						for _, f := range result.Failures {
-							log.sugar.Warnw("warn", "FailureCode", f.FailureCode, "FailureReason", f.FailureReason, "ImageId", f.ImageId)
-						}
-						for _, id := range result.ImageIds {
-							log.sugar.Infow("deletedImageId", "RepositoryName", r.Detail.RepositoryName, "ImageDigest", id.ImageDigest)
-						}
+					for _, id := range result.ImageIds {
+						log.sugar.Infow("deletedImageId", "RepositoryName", r.Detail.RepositoryName, "ImageDigest", id.ImageDigest)
 					}
 				}
 			}(repo)
