@@ -118,10 +118,10 @@ func (c *Client) BatchGetImages(r ecr.Repository) ([]*Image, error) {
 	return sortedImages, nil
 }
 
-// sortImages ... ImagePushedAtの降順になるようにソートする
+// sortImages ... ImagePushedAtが最新のものから降順になるようにソートする
 func sortImages(images []*Image) []*Image {
 	sort.SliceStable(images, func(i, j int) bool {
-		return images[i].Detail.ImagePushedAt.Before(*images[j].Detail.ImagePushedAt)
+		return images[i].Detail.ImagePushedAt.After(*images[j].Detail.ImagePushedAt)
 	})
 
 	return images
