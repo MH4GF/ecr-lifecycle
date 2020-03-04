@@ -34,7 +34,7 @@ func (c *Client) ListAllRunningTasks() ([]Task, error) {
 			return nil, err
 		}
 
-		// タスク詳細を元にtaskDefintionを取得
+		// タスク詳細を元にtaskDefinitionを取得
 		for _, taskOutput := range tasksOutput.Tasks {
 			taskDefinition, err := c.describeTaskDefinition(taskOutput.TaskDefinitionArn)
 			if err != nil {
