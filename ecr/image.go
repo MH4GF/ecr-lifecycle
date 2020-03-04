@@ -29,8 +29,8 @@ func (i *Image) Uris(r ecr.Repository) []string {
 }
 
 // BatchDeleteImages ... 指定したrepositoryのimageを削除する。
-func (c *Client) BatchDeleteImages(r Repository, imageCountMoreThan int, ecsClients []ecs.Client) (*ecr.BatchDeleteImageOutput, error) {
-	input, err := c.BatchDeleteImageInput(*r.Detail, imageCountMoreThan, ecsClients)
+func (c *Client) BatchDeleteImages(r Repository, imageCountMoreThan int, tasks []ecs.Task) (*ecr.BatchDeleteImageOutput, error) {
+	input, err := c.BatchDeleteImageInput(*r.Detail, imageCountMoreThan, tasks)
 	if err != nil {
 		return nil, err
 	}
@@ -49,21 +49,10 @@ func (c *Client) BatchDeleteImages(r Repository, imageCountMoreThan int, ecsClie
 }
 
 // BatchDeleteImageInput ... DeleteするImageを絞り込む。
-func (c *Client) BatchDeleteImageInput(r ecr.Repository, imageCountMoreThan int, ecsClients []ecs.Client) (*ecr.BatchDeleteImageInput, error) {
+func (c *Client) BatchDeleteImageInput(r ecr.Repository, imageCountMoreThan int, tasks []ecs.Task) (*ecr.BatchDeleteImageInput, error) {
 	images, err := c.BatchGetImages(r)
 	if err != nil {
 		return nil, err
-	}
-
-	var runningTasks []ecs.Task
-
-	for _, client := range ecsClients {
-		tasks, err := client.ListAllRunningTasks()
-		if err != nil {
-			return nil, err
-		}
-
-		runningTasks = append(runningTasks, tasks...)
 	}
 
 	var imageIds []*ecr.ImageIdentifier
@@ -75,7 +64,7 @@ func (c *Client) BatchDeleteImageInput(r ecr.Repository, imageCountMoreThan int,
 		}
 
 		// 現在実行中のタスクがある場合は削除しない
-		if image.IsImageUsedRunningTasks(runningTasks, r) {
+		if image.IsImageUsedRunningTasks(tasks, r) {
 			continue
 		} else {
 			imageIds = append(imageIds, &ecr.ImageIdentifier{ImageDigest: image.Detail.ImageDigest})

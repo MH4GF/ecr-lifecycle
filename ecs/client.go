@@ -8,7 +8,7 @@ import (
 
 // Client ... ECS client with a session
 type Client struct {
-	ecs        ecs.ECS
+	ecs ecs.ECS
 }
 
 // RegisterECSNewSession ... Create a ECS client with profile and region

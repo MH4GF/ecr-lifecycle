@@ -62,7 +62,7 @@ var cmdDeleteImages = cli.Command{
 					defer wg.Done()
 				}()
 
-				result, err := config.ecrClient.BatchDeleteImages(r, config.flag.keep, config.ecsClients)
+				result, err := config.ecrClient.BatchDeleteImages(r, config.flag.keep, config.ecsAllRunningTasks)
 				if err != nil {
 					log.sugar.Warnf("could not delete images: %s", err)
 				}
