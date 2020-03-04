@@ -29,8 +29,8 @@ func (i *Image) Uris(r ecr.Repository) []string {
 }
 
 // BatchDeleteImages ... 指定したrepositoryのimageを削除する。
-func (c *Client) BatchDeleteImages(r Repository, imageCountMoreThan int, ecs ecs.Client) (*ecr.BatchDeleteImageOutput, error) {
-	input, err := c.BatchDeleteImageInput(*r.Detail, imageCountMoreThan, ecs)
+func (c *Client) BatchDeleteImages(r Repository, imageCountMoreThan int, ecsClients []ecs.Client) (*ecr.BatchDeleteImageOutput, error) {
+	input, err := c.BatchDeleteImageInput(*r.Detail, imageCountMoreThan, ecsClients)
 	if err != nil {
 		return nil, err
 	}
@@ -49,20 +49,27 @@ func (c *Client) BatchDeleteImages(r Repository, imageCountMoreThan int, ecs ecs
 }
 
 // BatchDeleteImageInput ... DeleteするImageを絞り込む。
-func (c *Client) BatchDeleteImageInput(r ecr.Repository, imageCountMoreThan int, ecs ecs.Client) (*ecr.BatchDeleteImageInput, error) {
+func (c *Client) BatchDeleteImageInput(r ecr.Repository, imageCountMoreThan int, ecsClients []ecs.Client) (*ecr.BatchDeleteImageInput, error) {
 	images, err := c.BatchGetImages(r)
 	if err != nil {
 		return nil, err
 	}
 
-	runningTasks, err := ecs.ListAllRunningTasks()
-	if err != nil {
-		return nil, err
+	var runningTasks []ecs.Task
+
+	for _, client := range ecsClients {
+		tasks, err := client.ListAllRunningTasks()
+		if err != nil {
+			return nil, err
+		}
+
+		runningTasks = append(runningTasks, tasks...)
 	}
 
 	var imageIds []*ecr.ImageIdentifier
 
 	for i, image := range images {
+		// iは0から始まるため `<=` じゃなくてよい
 		if i < imageCountMoreThan {
 			continue
 		}
@@ -118,10 +125,10 @@ func (c *Client) BatchGetImages(r ecr.Repository) ([]*Image, error) {
 	return sortedImages, nil
 }
 
-// sortImages ... ImagePushedAtの降順になるようにソートする
+// sortImages ... ImagePushedAtが最新のものから降順になるようにソートする
 func sortImages(images []*Image) []*Image {
 	sort.SliceStable(images, func(i, j int) bool {
-		return images[i].Detail.ImagePushedAt.Before(*images[j].Detail.ImagePushedAt)
+		return images[i].Detail.ImagePushedAt.After(*images[j].Detail.ImagePushedAt)
 	})
 
 	return images

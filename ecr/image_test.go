@@ -165,7 +165,7 @@ func Test_sortImages(t *testing.T) {
 			want: []*Image{
 				{
 					Detail: &ecr.ImageDetail{
-						ImagePushedAt: strToTime("2020-01-31"),
+						ImagePushedAt: strToTime("2020-02-02"),
 					},
 				},
 				{
@@ -175,7 +175,7 @@ func Test_sortImages(t *testing.T) {
 				},
 				{
 					Detail: &ecr.ImageDetail{
-						ImagePushedAt: strToTime("2020-02-02"),
+						ImagePushedAt: strToTime("2020-01-31"),
 					},
 				},
 			},
