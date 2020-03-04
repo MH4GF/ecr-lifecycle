@@ -5,6 +5,7 @@ import (
 	"github.com/MH4GF/ecr-lifecycle/ecs"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecr"
+	"sort"
 )
 
 // Image ... Store original ecr.Image
@@ -47,7 +48,7 @@ func (c *Client) BatchDeleteImages(r Repository, imageCountMoreThan int, ecs ecs
 	return result, nil
 }
 
-//
+// BatchDeleteImageInput ... DeleteするImageを絞り込む。
 func (c *Client) BatchDeleteImageInput(r ecr.Repository, imageCountMoreThan int, ecs ecs.Client) (*ecr.BatchDeleteImageInput, error) {
 	images, err := c.BatchGetImages(r)
 	if err != nil {
@@ -112,6 +113,16 @@ func (c *Client) BatchGetImages(r ecr.Repository) ([]*Image, error) {
 	for _, image := range result.ImageDetails {
 		images = append(images, &Image{Detail: image})
 	}
+	sortedImages := sortImages(images)
 
-	return images, nil
+	return sortedImages, nil
+}
+
+// sortImages ... ImagePushedAtの降順になるようにソートする
+func sortImages(images []*Image) []*Image {
+	sort.SliceStable(images, func(i, j int) bool {
+		return images[i].Detail.ImagePushedAt.Before(*images[j].Detail.ImagePushedAt)
+	})
+
+	return images
 }
