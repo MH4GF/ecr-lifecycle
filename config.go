@@ -8,10 +8,10 @@ import (
 
 // Config ... app実行に伴う全てのstructを格納
 type Config struct {
-	flag         Flag
-	ecrClient    ecr.Client
-	ecsClients   []ecs.Client
-	repositories []ecr.Repository
+	flag               Flag
+	ecrClient          ecr.Client
+	repositories       []ecr.Repository
+	ecsAllRunningTasks []ecs.Task
 }
 
 func newConfig(c *cli.Context) (*Config, error) {
@@ -32,17 +32,6 @@ func newConfig(c *cli.Context) (*Config, error) {
 		return nil, err
 	}
 
-	// ecsClientを全てinit
-	var ecsClients []ecs.Client
-	for _, p := range f.ecsProfiles {
-		sess, err := ecs.RegisterECSNewSession(p, f.region)
-		if err != nil {
-			return nil, err
-		}
-		ecsClient := ecs.NewClient(sess)
-		ecsClients = append(ecsClients, *ecsClient)
-	}
-
 	// repositoryを取得
 	repositories, err := ecrClient.DescribeRepositories()
 	if err != nil {
@@ -52,12 +41,32 @@ func newConfig(c *cli.Context) (*Config, error) {
 		log.sugar.Infof("target repositoryArn: %s", *r.Detail.RepositoryArn)
 	}
 
+	// ecsで現在実行しているタスクを取得
+	var ecsAllRunningTasks []ecs.Task
+	for _, p := range f.ecsProfiles {
+		sess, err := ecs.RegisterECSNewSession(p, f.region)
+		if err != nil {
+			return nil, err
+		}
+		ecsClient := ecs.NewClient(*sess)
+
+		tasks, err := ecsClient.ListAllRunningTasks()
+		if err != nil {
+			return nil, err
+		}
+		for _, task := range tasks {
+			log.sugar.Infow("running task", "taskArn", task.TaskArn, "imageUri", task.Image)
+		}
+
+		ecsAllRunningTasks = append(ecsAllRunningTasks, tasks...)
+	}
+
 	// 全てconfigとしてぶち込む
 	config := Config{
-		flag:         f,
-		ecrClient:    *ecrClient,
-		ecsClients:   ecsClients,
-		repositories: repositories,
+		flag:               f,
+		ecrClient:          *ecrClient,
+		repositories:       repositories,
+		ecsAllRunningTasks: ecsAllRunningTasks,
 	}
 	return &config, err
 }
