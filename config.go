@@ -49,11 +49,13 @@ func newConfig(c *cli.Context) (*Config, error) {
 			return nil, err
 		}
 		ecsClient := ecs.NewClient(*sess)
-		log.sugar.Infof("watch running ecs tasks profile: %s", p)
 
 		tasks, err := ecsClient.ListAllRunningTasks()
 		if err != nil {
 			return nil, err
+		}
+		for _, task := range tasks {
+			log.sugar.Infow("running task", "taskArn", task.TaskArn, "imageUri", task.Image)
 		}
 
 		ecsAllRunningTasks = append(ecsAllRunningTasks, tasks...)
