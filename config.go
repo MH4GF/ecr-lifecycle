@@ -55,7 +55,7 @@ func newConfig(c *cli.Context) (*Config, error) {
 			return nil, err
 		}
 		for _, task := range tasks {
-			log.sugar.Infow("running task", "taskArn", task.TaskArn, "imageUri", task.Image)
+			log.sugar.Infow("running task", "ecsAwsProfile", p, "ecsTaskArn", task.TaskArn, "taskImageUri", task.Image)
 		}
 
 		ecsAllRunningTasks = append(ecsAllRunningTasks, tasks...)
