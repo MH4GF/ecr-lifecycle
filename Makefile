@@ -3,8 +3,8 @@ LDFLAGS     := -ldflags="-X \"main.Revision=$(REVISION)\" -extldflags \"-static\
 GO_IMAGE    := golang:1.13.4
 
 NAME        := ecr-lifecycle
-linux_name	:= $(name)-linux-amd64
-darwin_name	:= $(name)-darwin-amd64
+linux_name	:= $(NAME)-linux-amd64
+darwin_name	:= $(NAME)-darwin-amd64
 
 .PHONY: help build clean run lint fmt test
 
