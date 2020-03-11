@@ -22,23 +22,9 @@ var cmdDeleteImages = cli.Command{
 	Name: "delete-images",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
-			Name:  "ecr-profile",
-			Usage: "Use a specific profile of stored ecr repository from your credential file.",
-		},
-		&cli.StringSliceFlag{
-			Name:  "ecs-profiles",
-			Usage: "Use a multiple profiles of running ecs task from your credential file.",
-		},
-		&cli.StringFlag{
-			Name:    "region",
-			Aliases: []string{"r"},
-			Usage:   "The region to use.",
-		},
-		&cli.IntFlag{
-			Name:    "keep",
-			Value:   10000,
-			Aliases: []string{"k"},
-			Usage:   "Number of images to keep from latest.",
+			Name:     "template",
+			Usage:    "load YAML file for configuration.",
+			Required: true,
 		},
 	},
 	Action: func(c *cli.Context) error {
@@ -52,7 +38,7 @@ var cmdDeleteImages = cli.Command{
 		semaphore := make(chan struct{}, 10)
 
 		//repositoryごとに並行で回す
-		for _, repo := range config.repositories {
+		for _, repo := range config.Repositories {
 			wg.Add(1)
 			semaphore <- struct{}{}
 
@@ -62,7 +48,7 @@ var cmdDeleteImages = cli.Command{
 					defer wg.Done()
 				}()
 
-				result, err := config.ecrClient.BatchDeleteImages(r, config.flag.keep, config.ecsAllRunningTasks)
+				result, err := config.EcrClient.BatchDeleteImages(r, config.Keep, config.EcsAllRunningTasks)
 				if err != nil {
 					log.sugar.Warnf("could not delete images: %s", err)
 				}

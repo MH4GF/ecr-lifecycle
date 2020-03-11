@@ -60,7 +60,7 @@ func (c *Client) describeTaskDefinition(taskDefinition *string) (*ecs.DescribeTa
 		TaskDefinition: taskDefinition,
 	}
 
-	result, err := c.ecs.DescribeTaskDefinition(input)
+	result, err := c.ECS.DescribeTaskDefinition(input)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (c *Client) describeTasks(clusterArn *string, taskArns []*string) (*ecs.Des
 		Tasks:   taskArns,
 	}
 
-	result, err := c.ecs.DescribeTasks(input)
+	result, err := c.ECS.DescribeTasks(input)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (c *Client) listAllTasksOutput() ([]*listTasksOutput, error) {
 			DesiredStatus: aws.String("RUNNING"),
 		}
 
-		result, err := c.ecs.ListTasks(input)
+		result, err := c.ECS.ListTasks(input)
 		if err != nil {
 			return nil, err
 		}

@@ -1,36 +1,40 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"github.com/MH4GF/ecr-lifecycle/ecr"
 	"github.com/MH4GF/ecr-lifecycle/ecs"
 	"github.com/urfave/cli/v2"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
 )
 
 // Config ... app実行に伴う全てのstructを格納
 type Config struct {
-	flag               Flag
-	ecrClient          ecr.Client
-	repositories       []ecr.Repository
-	ecsAllRunningTasks []ecs.Task
+	Profile            string   `yaml:"Profile"`
+	EcrAssumeRoleArn   string   `yaml:"EcrAssumeRoleArn"`
+	EcsAssumeRoleArns  []string `yaml:"EcsAssumeRoleArns"`
+	Region             string   `yaml:"Region"`
+	Keep               int      `yaml:"Keep"`
+	EcrClient          ecr.Client
+	Repositories       []ecr.Repository
+	EcsAllRunningTasks []ecs.Task
 }
 
 func newConfig(c *cli.Context) (*Config, error) {
-	// Flagの確認とcheck
-	f := Flag{
-		ecrProfile:  c.String("ecr-profile"),
-		ecsProfiles: c.StringSlice("ecs-profiles"),
-		region:      c.String("region"),
-		keep:        c.Int("keep"),
-	}
-	if err := f.validate(); err != nil {
-		return nil, err
+	t := c.String("template")
+	config := Config{}
+	if err := config.loadYaml(t); err != nil {
+		return nil, errors.New(fmt.Sprintf("error on reading template file: %s", err))
 	}
 
 	// ecrClientのinit
-	ecrClient, err := ecr.NewClient(f.ecrProfile, f.region)
+	ecrClient, err := ecr.NewClient(config.Profile, config.EcrAssumeRoleArn, config.Region)
 	if err != nil {
 		return nil, err
 	}
+	config.EcrClient = *ecrClient
 
 	// repositoryを取得
 	repositories, err := ecrClient.DescribeRepositories()
@@ -40,33 +44,42 @@ func newConfig(c *cli.Context) (*Config, error) {
 	for _, r := range repositories {
 		log.sugar.Infof("target repositoryArn: %s", *r.Detail.RepositoryArn)
 	}
+	config.Repositories = repositories
 
 	// ecsで現在実行しているタスクを取得
 	var ecsAllRunningTasks []ecs.Task
-	for _, p := range f.ecsProfiles {
-		sess, err := ecs.RegisterECSNewSession(p, f.region)
+	for _, arn := range config.EcsAssumeRoleArns {
+		ecsClient, err := ecs.NewClient(config.Profile, arn, config.Region)
 		if err != nil {
 			return nil, err
 		}
-		ecsClient := ecs.NewClient(*sess)
 
 		tasks, err := ecsClient.ListAllRunningTasks()
 		if err != nil {
 			return nil, err
 		}
 		for _, task := range tasks {
-			log.sugar.Infow("running task", "ecsAwsProfile", p, "ecsTaskArn", task.TaskArn, "taskImageUri", task.Image)
+			log.sugar.Infow("running task", "ecsTaskArn", task.TaskArn, "taskImageUri", task.Image)
 		}
 
 		ecsAllRunningTasks = append(ecsAllRunningTasks, tasks...)
 	}
+	config.EcsAllRunningTasks = ecsAllRunningTasks
 
-	// 全てconfigとしてぶち込む
-	config := Config{
-		flag:               f,
-		ecrClient:          *ecrClient,
-		repositories:       repositories,
-		ecsAllRunningTasks: ecsAllRunningTasks,
-	}
 	return &config, err
+}
+
+func (c *Config) loadYaml(filepath string) error {
+	buf, err := ioutil.ReadFile(filepath)
+	if err != nil {
+		return err
+	}
+
+	// Yaml ファイル → Struct へのパース
+	err = yaml.Unmarshal(buf, &c)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
