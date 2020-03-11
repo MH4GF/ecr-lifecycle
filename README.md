@@ -6,12 +6,14 @@
 # Usage
 
 ```shell script
-$ ecr-lifecycle delete-images --keep 50 --ecr-profile sandbox --region ap-northeast-1 --ecs-profiles hoge --ecs-profiles fuga
+$ ecr-lifecycle delete-images --template config.yml
 ```
 
 # development
 
+開発時は `~/.aws/credentials` のprofileを指定できます。
+
 ```shell script
 $ make build
-$ bin/ecr-lifecycle
+$ bin/ecr-lifecycle --profile hoge --template config.yml
 ```
