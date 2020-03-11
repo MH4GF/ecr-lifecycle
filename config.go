@@ -10,14 +10,27 @@ import (
 	"io/ioutil"
 )
 
-// Config ... app実行に伴う全てのstructを格納
+// Config ... app実行に伴う全ての設定項目を格納
 type Config struct {
-	EcrAssumeRoleArn   string   `yaml:"EcrAssumeRoleArn"`
-	EcsAssumeRoleArns  []string `yaml:"EcsAssumeRoleArns"`
-	Region             string   `yaml:"Region"`
-	Keep               int      `yaml:"Keep"`
-	EcrClient          ecr.Client
-	Repositories       []ecr.Repository
+	// ECRのイメージが格納されているAWSアカウントにスイッチロールするためのAssumeRoleArn
+	EcrAssumeRoleArn string `yaml:"EcrAssumeRoleArn"`
+
+	// ECSタスクが実行されているAWSアカウントにスイッチロールするためのAssumeRoleArnの配列
+	EcsAssumeRoleArns []string `yaml:"EcsAssumeRoleArns"`
+
+	// 動作するregion
+	Region string `yaml:"Region"`
+
+	// 最新から何件保持するか指定する。
+	Keep int `yaml:"Keep"`
+
+	// ECRのセッションクライアント
+	EcrClient ecr.Client
+
+	// ECRに存在する全てのリポジトリ
+	Repositories []ecr.Repository
+
+	// EcsAssumeRoleArnsで指定したAWSアカウントで実行されている全てのECSタスク
 	EcsAllRunningTasks []ecs.Task
 }
 
@@ -27,6 +40,9 @@ func newConfig(c *cli.Context) (*Config, error) {
 	config := Config{}
 	if err := config.loadYaml(t); err != nil {
 		return nil, errors.New(fmt.Sprintf("error on reading template file: %s", err))
+	}
+	if err := config.validate(); err != nil {
+		return nil, err
 	}
 
 	// ecrClientのinit
@@ -79,6 +95,41 @@ func (c *Config) loadYaml(filepath string) error {
 	err = yaml.Unmarshal(buf, &c)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (c *Config) validate() error {
+	// EcrAssumeRoleArn
+	if c.EcrAssumeRoleArn == "" {
+		return errors.New("invalid params: EcrAssumeRoleArn is required and minimum field size of 20")
+	}
+	if c.EcrAssumeRoleArn != "" && len(c.EcrAssumeRoleArn) < 20 {
+		return errors.New("invalid params: EcrAssumeRoleArn is required and minimum field size of 20")
+	}
+
+	// EcsAssumeRoleArns
+	if len(c.EcsAssumeRoleArns) == 0 {
+		return errors.New("invalid params: EcrAssumeRoleArn is required")
+	}
+	for _, arn := range c.EcsAssumeRoleArns {
+		if arn == "" {
+			return errors.New("invalid params: EcsAssumeRoleArns is required and minimum field size of 20")
+		}
+		if arn != "" && len(arn) < 20 {
+			return errors.New("invalid params: EcsAssumeRoleArns is required and minimum field size of 20")
+		}
+	}
+
+	// Region
+	if c.Region == "" {
+		return errors.New("invalid params: Region is required")
+	}
+
+	// Keep
+	if c.Keep < 1 {
+		return errors.New("invalid params: Keep is required and minimum field size of 1")
 	}
 
 	return nil
