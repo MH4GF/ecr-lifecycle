@@ -17,28 +17,25 @@ type Client struct {
 func NewClient(awsProfile string, awsRoleArn string, awsRegion string) (*Client, error) {
 	c := &Client{}
 
+	// インスタンスのIAMロール or ローカルのawsProfileを使ってまずセッションを張る
 	var baseSess *session.Session
 	if awsProfile != "" {
 		baseSess = session.Must(session.NewSessionWithOptions(session.Options{Profile: awsProfile}))
 	} else {
 		baseSess = session.Must(session.NewSessionWithOptions(session.Options{
-			Config: aws.Config{CredentialsChainVerboseErrors: aws.Bool(true)},
+			Config: *aws.NewConfig().WithCredentialsChainVerboseErrors(true),
 		}))
 	}
 	assumeRoler := sts.New(baseSess)
 
+	// 指定したECRへassumeRole
 	creds := stscreds.NewCredentialsWithClient(assumeRoler, awsRoleArn)
-	config := aws.Config{
-		CredentialsChainVerboseErrors: aws.Bool(true),
-		Region:                        &awsRegion,
-		Credentials:                   creds,
-	}
-	sess, err := session.NewSession(&config)
+	config := aws.NewConfig().WithRegion(awsRegion).WithCredentials(creds).WithCredentialsChainVerboseErrors(true)
+	sess, err := session.NewSession(config)
 	if err != nil {
 		return nil, err
 	}
-
-	c.ECS = ecs.New(sess, &config)
+	c.ECS = ecs.New(sess, config)
 
 	return c, err
 }
