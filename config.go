@@ -35,12 +35,20 @@ type Config struct {
 }
 
 func newConfig(c *cli.Context) (*Config, error) {
+	config := Config{}
 	p := c.String("profile")
 	t := c.String("template")
-	config := Config{}
-	if err := config.loadYaml(t); err != nil {
-		return nil, errors.New(fmt.Sprintf("error on reading template file: %s", err))
+	if t != "" {
+		if err := config.loadYaml(t); err != nil {
+			return nil, errors.New(fmt.Sprintf("error on reading template file: %s", err))
+		}
+	} else {
+		config.EcrAssumeRoleArn = c.String("ecr-assume-role-arn")
+		config.EcsAssumeRoleArns = c.StringSlice("ecs-assume-role-arns")
+		config.Region = c.String("region")
+		config.Keep = c.Int("keep")
 	}
+
 	if err := config.validate(); err != nil {
 		return nil, err
 	}

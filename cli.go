@@ -27,10 +27,22 @@ var cmdDeleteImages = cli.Command{
 			Usage:   "if development, can select specify profile from ~/.aws/credentials",
 		},
 		&cli.StringFlag{
-			Name:     "template",
-			Aliases:  []string{"t"},
-			Usage:    "load YAML file for configuration.",
-			Required: true,
+			Name:    "template",
+			Aliases: []string{"t"},
+			Usage:   "load YAML file for configuration.",
+		},
+		&cli.StringFlag{
+			Name: "ecr-assume-role-arn",
+		},
+		&cli.StringSliceFlag{
+			Name: "ecs-assume-role-arns",
+		},
+		&cli.StringFlag{
+			Name: "region",
+		},
+		&cli.IntFlag{
+			Name:  "keep",
+			Usage: "Specify how many items are kept from the latest image",
 		},
 	},
 	Action: func(c *cli.Context) error {
