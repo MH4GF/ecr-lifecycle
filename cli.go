@@ -22,7 +22,13 @@ var cmdDeleteImages = cli.Command{
 	Name: "delete-images",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
+			Name:    "profile",
+			Aliases: []string{"p"},
+			Usage:   "if development, can select specify profile from ~/.aws/credentials",
+		},
+		&cli.StringFlag{
 			Name:     "template",
+			Aliases:  []string{"t"},
 			Usage:    "load YAML file for configuration.",
 			Required: true,
 		},

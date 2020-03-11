@@ -12,7 +12,6 @@ import (
 
 // Config ... app実行に伴う全てのstructを格納
 type Config struct {
-	Profile            string   `yaml:"Profile"`
 	EcrAssumeRoleArn   string   `yaml:"EcrAssumeRoleArn"`
 	EcsAssumeRoleArns  []string `yaml:"EcsAssumeRoleArns"`
 	Region             string   `yaml:"Region"`
@@ -23,6 +22,7 @@ type Config struct {
 }
 
 func newConfig(c *cli.Context) (*Config, error) {
+	p := c.String("profile")
 	t := c.String("template")
 	config := Config{}
 	if err := config.loadYaml(t); err != nil {
@@ -30,7 +30,7 @@ func newConfig(c *cli.Context) (*Config, error) {
 	}
 
 	// ecrClientのinit
-	ecrClient, err := ecr.NewClient(config.Profile, config.EcrAssumeRoleArn, config.Region)
+	ecrClient, err := ecr.NewClient(p, config.EcrAssumeRoleArn, config.Region)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func newConfig(c *cli.Context) (*Config, error) {
 	// ecsで現在実行しているタスクを取得
 	var ecsAllRunningTasks []ecs.Task
 	for _, arn := range config.EcsAssumeRoleArns {
-		ecsClient, err := ecs.NewClient(config.Profile, arn, config.Region)
+		ecsClient, err := ecs.NewClient(p, arn, config.Region)
 		if err != nil {
 			return nil, err
 		}
