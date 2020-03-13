@@ -93,22 +93,32 @@ type listTasksOutput struct {
 func (c *Client) listAllTasksOutput() ([]*listTasksOutput, error) {
 	var tasks []*listTasksOutput
 
-	clusters, err := c.ListClusters()
+	clusterArns, err := c.ListClusters()
 	if err != nil {
 		return nil, err
 	}
 
-	for _, clusterArn := range clusters.ClusterArns {
-		input := &ecs.ListTasksInput{
-			Cluster:       clusterArn,
-			DesiredStatus: aws.String("RUNNING"),
-		}
+	var nextToken *string
+	for _, clusterArn := range clusterArns {
+		for {
+			input := &ecs.ListTasksInput{
+				Cluster:       clusterArn,
+				DesiredStatus: aws.String("RUNNING"),
+				MaxResults:    aws.Int64(100), // 最大値
+				NextToken:     nextToken,
+			}
+			result, err := c.ECS.ListTasks(input)
+			if err != nil {
+				return nil, err
+			}
 
-		result, err := c.ECS.ListTasks(input)
-		if err != nil {
-			return nil, err
+			tasks = append(tasks, &listTasksOutput{listTasksOutput: result, clusterArn: clusterArn})
+			if result.NextToken != nil {
+				nextToken = result.NextToken
+			} else {
+				break // result.NextTokenがなければ終了
+			}
 		}
-		tasks = append(tasks, &listTasksOutput{listTasksOutput: result, clusterArn: clusterArn})
 	}
 
 	return tasks, nil

@@ -96,22 +96,32 @@ func (i *Image) IsImageUsedRunningTasks(tasks []ecs.Task, r ecr.Repository) bool
 
 // BatchGetImages ... イメージの詳細を取得
 func (c *Client) BatchGetImages(r ecr.Repository) ([]*Image, error) {
-	input := &ecr.DescribeImagesInput{
-		RepositoryName: r.RepositoryName,
-	}
-
-	result, err := c.ecr.DescribeImages(input)
-	if err != nil {
-		return nil, err
-	}
-
+	var nextToken *string
 	var images []*Image
-	for _, image := range result.ImageDetails {
-		images = append(images, &Image{Detail: image})
-	}
-	sortedImages := sortImages(images)
 
-	return sortedImages, nil
+	for {
+		input := &ecr.DescribeImagesInput{
+			RepositoryName: r.RepositoryName,
+			MaxResults:     aws.Int64(1000), // 最大値
+			NextToken:      nextToken,
+		}
+		result, err := c.ecr.DescribeImages(input)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, image := range result.ImageDetails {
+			images = append(images, &Image{Detail: image})
+		}
+
+		if result.NextToken != nil {
+			nextToken = result.NextToken
+		} else {
+			break // result.NextTokenがなければ終了
+		}
+	}
+
+	return sortImages(images), nil
 }
 
 // sortImages ... ImagePushedAtが最新のものから降順になるようにソートする
