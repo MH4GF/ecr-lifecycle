@@ -98,17 +98,27 @@ func (c *Client) listAllTasksOutput() ([]*listTasksOutput, error) {
 		return nil, err
 	}
 
+	var nextToken *string
 	for _, clusterArn := range clusterArns {
-		input := &ecs.ListTasksInput{
-			Cluster:       clusterArn,
-			DesiredStatus: aws.String("RUNNING"),
-		}
+		for {
+			input := &ecs.ListTasksInput{
+				Cluster:       clusterArn,
+				DesiredStatus: aws.String("RUNNING"),
+				MaxResults:    aws.Int64(100), // 最大値
+				NextToken:     nextToken,
+			}
+			result, err := c.ECS.ListTasks(input)
+			if err != nil {
+				return nil, err
+			}
 
-		result, err := c.ECS.ListTasks(input)
-		if err != nil {
-			return nil, err
+			tasks = append(tasks, &listTasksOutput{listTasksOutput: result, clusterArn: clusterArn})
+			if result.NextToken != nil {
+				nextToken = result.NextToken
+			} else {
+				break // result.NextTokenがなければ終了
+			}
 		}
-		tasks = append(tasks, &listTasksOutput{listTasksOutput: result, clusterArn: clusterArn})
 	}
 
 	return tasks, nil

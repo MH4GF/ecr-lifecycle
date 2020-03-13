@@ -13,7 +13,7 @@ func (c *Client) ListClusters() ([]*string, error) {
 	for {
 		input := &ecs.ListClustersInput{
 			MaxResults: aws.Int64(100), // 最大値
-			NextToken: nextToken,
+			NextToken:  nextToken,
 		}
 		result, err := c.ECS.ListClusters(input)
 		if err != nil {

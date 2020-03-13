@@ -102,8 +102,8 @@ func (c *Client) BatchGetImages(r ecr.Repository) ([]*Image, error) {
 	for {
 		input := &ecr.DescribeImagesInput{
 			RepositoryName: r.RepositoryName,
-			MaxResults: aws.Int64(1000), // 最大値
-			NextToken: nextToken,
+			MaxResults:     aws.Int64(1000), // 最大値
+			NextToken:      nextToken,
 		}
 		result, err := c.ecr.DescribeImages(input)
 		if err != nil {
