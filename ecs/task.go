@@ -93,12 +93,12 @@ type listTasksOutput struct {
 func (c *Client) listAllTasksOutput() ([]*listTasksOutput, error) {
 	var tasks []*listTasksOutput
 
-	clusters, err := c.ListClusters()
+	clusterArns, err := c.ListClusters()
 	if err != nil {
 		return nil, err
 	}
 
-	for _, clusterArn := range clusters.ClusterArns {
+	for _, clusterArn := range clusterArns {
 		input := &ecs.ListTasksInput{
 			Cluster:       clusterArn,
 			DesiredStatus: aws.String("RUNNING"),
