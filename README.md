@@ -16,6 +16,15 @@ $ ecr-lifecycle delete-images --ecr-assume-role-arn arn:aws:iam::12345678901:rol
   --keep 50
 ```
 
+# Motivation
+
+AWSが提供しているECRのライフサイクルポリシーは指定した件数のみ残し削除や指定した期間が経過したら削除などはできるが、コンテナとして実行中だとしても無視して削除されてしまう。
+今回はECSタスクを監視し、イメージが使われているのであれば削除せず保護するようにした。
+
+# 全体図
+
+![ecr-lifecycle](docs/ecr-lifecycle.png)
+
 # development
 
 開発時は `~/.aws/credentials` のprofileを指定できます。
