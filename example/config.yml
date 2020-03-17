@@ -1,4 +1,3 @@
-EcrAssumeRoleArn: "arn:aws:iam::xxxxxxxxxxxx:role/hoge"
 EcsAssumeRoleArns:
   - "arn:aws:iam::xxxxxxxxxxxx:role/fuga"
   - "arn:aws:iam::xxxxxxxxxxxx:role/piyo"

@@ -8,7 +8,6 @@ import (
 
 func TestConfig_validate(t *testing.T) {
 	type fields struct {
-		EcrAssumeRoleArn   string
 		EcsAssumeRoleArns  []string
 		Region             string
 		Keep               int
@@ -24,7 +23,6 @@ func TestConfig_validate(t *testing.T) {
 		{
 			name: "正常系",
 			fields: fields{
-				EcrAssumeRoleArn: "arn:aws:iam::12345678901:role/hoge",
 				EcsAssumeRoleArns: []string{
 					"arn:aws:iam::12345678901:role/fuga",
 				},
@@ -37,24 +35,8 @@ func TestConfig_validate(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "EcrAssumeRoleArnが空文字の場合",
-			fields: fields{
-				EcrAssumeRoleArn: "",
-				EcsAssumeRoleArns: []string{
-					"arn:aws:iam::12345678901:role/fuga",
-				},
-				Region:             "ap-northeast-1",
-				Keep:               50,
-				EcrClient:          ecr.Client{},
-				Repositories:       nil,
-				EcsAllRunningTasks: nil,
-			},
-			wantErr: true,
-		},
-		{
 			name: "EcsAssumeRoleArnsが空sliceの場合",
 			fields: fields{
-				EcrAssumeRoleArn:   "arn:aws:iam::12345678901:role/hoge",
 				EcsAssumeRoleArns:  []string{},
 				Region:             "ap-northeast-1",
 				Keep:               50,
@@ -67,7 +49,6 @@ func TestConfig_validate(t *testing.T) {
 		{
 			name: "EcsAssumeRoleArnsのいづれかが20文字以下の場合",
 			fields: fields{
-				EcrAssumeRoleArn: "arn:aws:iam::12345678901:role/hoge",
 				EcsAssumeRoleArns: []string{
 					"arn:aws:iam::12345678901:role/fuga",
 					"1234567890123456789",
@@ -83,7 +64,6 @@ func TestConfig_validate(t *testing.T) {
 		{
 			name: "Regionが空文字の場合",
 			fields: fields{
-				EcrAssumeRoleArn: "arn:aws:iam::12345678901:role/hoge",
 				EcsAssumeRoleArns: []string{
 					"arn:aws:iam::12345678901:role/fuga",
 				},
@@ -98,7 +78,6 @@ func TestConfig_validate(t *testing.T) {
 		{
 			name: "Keepが1以下の場合",
 			fields: fields{
-				EcrAssumeRoleArn: "arn:aws:iam::12345678901:role/hoge",
 				EcsAssumeRoleArns: []string{
 					"arn:aws:iam::12345678901:role/fuga",
 				},
@@ -115,7 +94,6 @@ func TestConfig_validate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := &Config{
-				EcrAssumeRoleArn:   tt.fields.EcrAssumeRoleArn,
 				EcsAssumeRoleArns:  tt.fields.EcsAssumeRoleArns,
 				Region:             tt.fields.Region,
 				Keep:               tt.fields.Keep,
