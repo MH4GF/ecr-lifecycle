@@ -12,9 +12,6 @@ import (
 
 // Config ... app実行に伴う全ての設定項目を格納
 type Config struct {
-	// ECRのイメージが格納されているAWSアカウントにスイッチロールするためのAssumeRoleArn
-	EcrAssumeRoleArn string `yaml:"EcrAssumeRoleArn"`
-
 	// ECSタスクが実行されているAWSアカウントにスイッチロールするためのAssumeRoleArnの配列
 	EcsAssumeRoleArns []string `yaml:"EcsAssumeRoleArns"`
 
@@ -43,7 +40,6 @@ func newConfig(c *cli.Context) (*Config, error) {
 			return nil, errors.New(fmt.Sprintf("error on reading template file: %s", err))
 		}
 	} else {
-		config.EcrAssumeRoleArn = c.String("ecr-assume-role-arn")
 		config.EcsAssumeRoleArns = c.StringSlice("ecs-assume-role-arns")
 		config.Region = c.String("region")
 		config.Keep = c.Int("keep")
@@ -54,14 +50,10 @@ func newConfig(c *cli.Context) (*Config, error) {
 	}
 
 	// ecrClientのinit
-	ecrClient, err := ecr.NewClient(p, config.EcrAssumeRoleArn, config.Region)
-	if err != nil {
-		return nil, err
-	}
-	config.EcrClient = *ecrClient
+	config.EcrClient = *ecr.NewClient(p, config.Region)
 
 	// repositoryを取得
-	repositories, err := ecrClient.DescribeRepositories()
+	repositories, err := config.EcrClient.DescribeRepositories()
 	if err != nil {
 		return nil, err
 	}
@@ -81,9 +73,6 @@ func newConfig(c *cli.Context) (*Config, error) {
 		tasks, err := ecsClient.ListAllRunningTasks()
 		if err != nil {
 			return nil, err
-		}
-		for _, task := range tasks {
-			log.sugar.Infow("running task", "ecsTaskArn", task.TaskArn, "taskImageUri", task.Image)
 		}
 
 		ecsAllRunningTasks = append(ecsAllRunningTasks, tasks...)
@@ -109,14 +98,6 @@ func (c *Config) loadYaml(filepath string) error {
 }
 
 func (c *Config) validate() error {
-	// EcrAssumeRoleArn
-	if c.EcrAssumeRoleArn == "" {
-		return errors.New("invalid params: EcrAssumeRoleArn is required and minimum field size of 20")
-	}
-	if c.EcrAssumeRoleArn != "" && len(c.EcrAssumeRoleArn) < 20 {
-		return errors.New("invalid params: EcrAssumeRoleArn is required and minimum field size of 20")
-	}
-
 	// EcsAssumeRoleArns
 	if len(c.EcsAssumeRoleArns) == 0 {
 		return errors.New("invalid params: EcrAssumeRoleArn is required")

@@ -9,7 +9,7 @@
 $ ecr-lifecycle delete-images --template config.yml
 
 # or
-$ ecr-lifecycle delete-images --ecr-assume-role-arn arn:aws:iam::12345678901:role/hoge \ 
+$ ecr-lifecycle delete-images \ 
   --ecs-assume-role-arns arn:aws:iam::12345678901:role/fuga \ 
   --ecs-assume-role-arns arn:aws:iam::12345678901:role/piyo \ 
   --region ap-northeast-1 

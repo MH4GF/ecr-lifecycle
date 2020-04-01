@@ -2,10 +2,8 @@ package ecr
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecr"
-	"github.com/aws/aws-sdk-go/service/sts"
 )
 
 // Client ... Store ECR client with a session
@@ -14,28 +12,21 @@ type Client struct {
 }
 
 // NewClient ... Create a ECR client with profile and region
-func NewClient(awsProfile string, awsRoleArn string, awsRegion string) (*Client, error) {
+func NewClient(awsProfile string, awsRegion string) *Client {
 	c := &Client{}
 
-	// インスタンスのIAMロール or ローカルのawsProfileを使ってまずセッションを張る
-	var baseSess *session.Session
+	// インスタンスのIAMロール or ローカルのawsProfileを使ってセッションを張る
+	var sess *session.Session
 	if awsProfile != "" {
-		baseSess = session.Must(session.NewSessionWithOptions(session.Options{Profile: awsProfile}))
+		sess = session.Must(session.NewSessionWithOptions(session.Options{Profile: awsProfile}))
 	} else {
-		baseSess = session.Must(session.NewSessionWithOptions(session.Options{
+		sess = session.Must(session.NewSessionWithOptions(session.Options{
 			Config: *aws.NewConfig().WithCredentialsChainVerboseErrors(true),
 		}))
 	}
-	assumeRoler := sts.New(baseSess)
 
-	// 指定したECRへassumeRole
-	creds := stscreds.NewCredentialsWithClient(assumeRoler, awsRoleArn)
-	config := aws.NewConfig().WithRegion(awsRegion).WithCredentials(creds).WithCredentialsChainVerboseErrors(true)
-	sess, err := session.NewSession(config)
-	if err != nil {
-		return nil, err
-	}
+	config := aws.NewConfig().WithRegion(awsRegion).WithCredentialsChainVerboseErrors(true)
 	c.ecr = ecr.New(sess, config)
 
-	return c, err
+	return c
 }

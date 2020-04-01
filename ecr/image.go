@@ -29,8 +29,8 @@ func (i *Image) Uris(r ecr.Repository) []string {
 }
 
 // BatchDeleteImages ... 指定したrepositoryのimageを削除する。
-func (c *Client) BatchDeleteImages(r Repository, imageCountMoreThan int, tasks []ecs.Task) (*ecr.BatchDeleteImageOutput, error) {
-	input, err := c.BatchDeleteImageInput(*r.Detail, imageCountMoreThan, tasks)
+func (c *Client) BatchDeleteImages(r Repository, keep int, tasks []ecs.Task) (*ecr.BatchDeleteImageOutput, error) {
+	input, err := c.BatchDeleteImageInput(*r.Detail, keep, tasks)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func (c *Client) BatchDeleteImages(r Repository, imageCountMoreThan int, tasks [
 }
 
 // BatchDeleteImageInput ... DeleteするImageを絞り込む。
-func (c *Client) BatchDeleteImageInput(r ecr.Repository, imageCountMoreThan int, tasks []ecs.Task) (*ecr.BatchDeleteImageInput, error) {
+func (c *Client) BatchDeleteImageInput(r ecr.Repository, keep int, tasks []ecs.Task) (*ecr.BatchDeleteImageInput, error) {
 	images, err := c.BatchGetImages(r)
 	if err != nil {
 		return nil, err
@@ -59,7 +59,7 @@ func (c *Client) BatchDeleteImageInput(r ecr.Repository, imageCountMoreThan int,
 
 	for i, image := range images {
 		// iは0から始まるため `<=` じゃなくてよい
-		if i < imageCountMoreThan {
+		if i < keep {
 			continue
 		}
 
